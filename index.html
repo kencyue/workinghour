@@ -34,38 +34,22 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         
-        /* 頂部導航 */
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 16px;
-            margin-bottom: 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;
         }
         .header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
         .user-info { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
 
-        /* 輸入框與按鈕現代化 */
         input, select {
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.2s;
-            background-color: #fff;
+            padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px;
+            font-size: 0.95rem; outline: none; transition: all 0.2s; background-color: #fff;
         }
         input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 
         .btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 10px 18px; border: none; border-radius: 8px; font-size: 0.95rem;
+            font-weight: 500; cursor: pointer; transition: all 0.2s;
         }
         .btn-primary { background: #3b82f6; color: white; }
         .btn-primary:hover { background: #2563eb; }
@@ -74,57 +58,38 @@
         .btn-save { background: var(--admin-color); color: white; margin-top: 10px; width: 100%; }
         .btn-save:hover { background: #047857; }
 
-        /* 區塊樣式 */
         .search-section {
-            background: var(--bg-color);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
+            background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;
         }
         .full-search { grid-column: 1 / -1; }
 
         #adminArea {
-            display: none;
-            background: #ecfdf5;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            border: 1px solid #a7f3d0;
+            display: none; background: #ecfdf5; padding: 20px; border-radius: 12px;
+            margin-bottom: 24px; border: 1px solid #a7f3d0;
         }
         .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;}
         
-        /* 現代化表格 */
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
         th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
-        tbody tr { transition: background-color 0.2s; cursor: pointer; }
-        tbody tr:hover { background-color: var(--hover-bg); }
+        tbody td { transition: background-color 0.2s; cursor: pointer; }
+        tbody tr:hover td { background-color: var(--hover-bg); }
         
-        /* 管理員編輯狀態 */
+        /* 儲存格點擊與編輯回饋 */
         .editable { position: relative; }
-        .editable[contenteditable="true"]:hover { background: #fef9c3; border-radius: 4px; }
-        .editable[contenteditable="true"]:focus { background: #fef08a; outline: none; border-radius: 4px; box-shadow: 0 0 0 2px #eab308; }
+        .editable[contenteditable="true"]:hover { background: #fef9c3 !important; border-radius: 4px; }
+        .editable[contenteditable="true"]:focus { background: #fef08a !important; outline: none; border-radius: 4px; box-shadow: 0 0 0 2px #eab308; }
 
         .badge-admin { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
 
-        /* 自訂 Toast 彈窗樣式 */
-        #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+        /* Toast 彈窗樣式 */
+        #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none; }
         .toast {
-            min-width: 250px;
-            padding: 14px 20px;
-            background: white;
-            color: var(--text-main);
-            border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            transform: translateX(120%);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            min-width: 250px; padding: 14px 20px; background: white; color: var(--text-main);
+            border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            font-weight: 500; display: flex; align-items: center; pointer-events: auto;
+            transform: translateX(120%); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             border-left: 5px solid transparent;
         }
         .toast.show { transform: translateX(0); opacity: 1; }
@@ -157,9 +122,9 @@
 
     <div id="adminArea">
         <strong style="color:var(--admin-color); font-size: 1.1rem;">✚ 新增 / 複製工時項目</strong>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 0 0;">提示：在下方輸入時會自動提示現有資料；點擊下方現有資料列可快速帶入此表單。</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 0 0;">提示：點擊下方表格任意欄位，即可自動複製該文字，並將整列資料帶入此表單。</p>
         <form id="addForm" class="input-row">
-            <input type="text" id="inCat" list="listCategory" placeholder="類別 (如:室外機)" required>
+            <input type="text" id="inCat" list="listCategory" placeholder="類別" required>
             <input type="text" id="inModel" list="listModel" placeholder="機種" required>
             <input type="text" id="inCap" list="listCapacity" placeholder="能力別" required>
             <input type="text" id="inName" list="listPartName" placeholder="零件名稱" required>
@@ -211,26 +176,42 @@
     let isAdmin = false;
     let allData = [];
 
-    // --- 自訂 Toast 提示系統 ---
+    // --- Toast 彈窗 ---
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        
-        // 依據類型加入小圖示
-        let icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '💡';
+        let icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '📋';
         toast.innerHTML = `<span style="margin-right:8px">${icon}</span> ${message}`;
-        
         container.appendChild(toast);
-        
         setTimeout(() => toast.classList.add('show'), 10);
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
-        }, 3000); // 3秒後自動消失
+        }, 2500); 
     }
 
-    // --- 權限控管與登出修復 ---
+    // --- 複製到剪貼簿功能 (相容性處理) ---
+    async function copyToClipboard(text) {
+        if (!text) return;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+            showToast(`已複製：${text}`, 'info');
+        } catch (err) {
+            console.error('複製失敗', err);
+        }
+    }
+
+    // --- 權限控管 ---
     onAuthStateChanged(auth, (user) => {
         const authArea = document.getElementById('authArea');
         const adminArea = document.getElementById('adminArea');
@@ -239,26 +220,16 @@
             isAdmin = user.email === adminEmail;
             authArea.innerHTML = `
                 <div class="user-info">
-                    ${isAdmin ? '<span class="badge-admin">管理員權限</span>' : ''}
+                    ${isAdmin ? '<span class="badge-admin">管理員</span>' : ''}
                     <span>${user.email}</span>
                     <button class="btn btn-outline" id="logoutBtn" style="padding: 6px 12px; font-size: 0.85rem;">登出</button>
                 </div>
             `;
-            
-            // 修復登出功能：使用 signOut 而非 reload
             document.getElementById('logoutBtn').onclick = async () => {
-                try {
-                    await signOut(auth);
-                    showToast('已成功登出', 'info');
-                } catch (error) {
-                    showToast('登出失敗', 'error');
-                }
+                await signOut(auth);
+                showToast('已成功登出', 'info');
             };
-            
-            if (isAdmin) {
-                adminArea.style.display = "block";
-                showToast('管理員模式已啟用', 'success');
-            }
+            if (isAdmin) adminArea.style.display = "block";
         } else {
             isAdmin = false;
             adminArea.style.display = "none";
@@ -268,15 +239,15 @@
         renderTable();
     });
 
-    // --- 資料讀取與監聽 ---
-    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(50)); // 放寬預設筆數以利搜尋與自動提示
+    // --- 資料讀取 ---
+    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(50));
     onSnapshot(q, (snapshot) => {
         allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         updateFiltersAndDatalists();
         renderTable();
     });
 
-    // --- 渲染表格與綁定列點擊事件 ---
+    // --- 渲染表格 (改用 data-屬性，移除了 inline onclick，解決衝突問題) ---
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         const globalSearch = document.getElementById('globalSearch').value.toLowerCase();
@@ -284,17 +255,13 @@
         const fModel = document.getElementById('filterMachine').value;
         const fCap = document.getElementById('filterCapacity').value;
 
-        // 篩選邏輯
         let filtered = allData.filter(item => {
             const matchGlobal = Object.values(item).some(val => String(val).toLowerCase().includes(globalSearch));
             const matchCat = fCat === "" || item.category === fCat;
             const matchModel = fModel === "" || item.machineModel === fModel;
             const matchCap = fCap === "" || item.capacity === fCap;
             return matchGlobal && matchCat && matchModel && matchCap;
-        });
-
-        // 限制顯示 20 筆
-        filtered = filtered.slice(0, 20);
+        }).slice(0, 20);
 
         if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px;">找不到符合的資料</td></tr>`;
@@ -302,63 +269,73 @@
         }
 
         tbody.innerHTML = filtered.map(item => `
-            <tr onclick="populateForm('${item.id}', event)">
-                <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'category', this.innerText)">${item.category || ''}</td>
-                <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'machineModel', this.innerText)">${item.machineModel || ''}</td>
-                <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'capacity', this.innerText)">${item.capacity || ''}</td>
-                <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'partName', this.innerText)">${item.partName || ''}</td>
-                <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'partNumber', this.innerText)">${item.partNumber || ''}</td>
-                <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'laborTime', this.innerText)">${item.laborTime || 0}</td>
+            <tr data-id="${item.id}">
+                <td data-field="category" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.category || ''}</td>
+                <td data-field="machineModel" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.machineModel || ''}</td>
+                <td data-field="capacity" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.capacity || ''}</td>
+                <td data-field="partName" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.partName || ''}</td>
+                <td data-field="partNumber" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.partNumber || ''}</td>
+                <td data-field="laborTime" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.laborTime || 0}</td>
             </tr>
         `).join('');
     }
 
-    // --- 將點選的列資料帶入新增表單 ---
-    window.populateForm = (id, event) => {
-        if (!isAdmin) return;
-        
-        // 如果使用者正在點擊編輯內容(focus 狀態)，則不觸發複製，避免衝突
-        if (document.activeElement.isContentEditable) return;
+    // --- 整合：點擊儲存格 = 複製值 + 帶入表單 ---
+    document.getElementById('tableBody').addEventListener('click', (e) => {
+        const td = e.target.closest('td');
+        if (!td) return;
 
-        const item = allData.find(d => d.id === id);
-        if (item) {
-            document.getElementById('inCat').value = item.category || '';
-            document.getElementById('inModel').value = item.machineModel || '';
-            document.getElementById('inCap').value = item.capacity || '';
-            document.getElementById('inName').value = item.partName || '';
-            document.getElementById('inNo').value = item.partNumber || '';
-            document.getElementById('inTime').value = item.laborTime || '';
-            showToast('已複製該列資料至新增表單', 'info');
+        // 1. 複製點擊的欄位文字
+        const textToCopy = td.innerText.trim();
+        copyToClipboard(textToCopy);
+
+        // 2. 將整列資料帶入新增表單 (僅管理員)
+        if (isAdmin) {
+            const tr = td.closest('tr');
+            const id = tr.dataset.id;
+            const item = allData.find(d => d.id === id);
+            
+            if (item) {
+                document.getElementById('inCat').value = item.category || '';
+                document.getElementById('inModel').value = item.machineModel || '';
+                document.getElementById('inCap').value = item.capacity || '';
+                document.getElementById('inName').value = item.partName || '';
+                document.getElementById('inNo').value = item.partNumber || '';
+                document.getElementById('inTime').value = item.laborTime || '';
+            }
         }
-    };
+    });
 
-    // --- 即時更新資料庫 ---
-    window.updateField = async (id, field, value) => {
+    // --- 監聽失去焦點 (Blur) 自動存檔 ---
+    document.getElementById('tableBody').addEventListener('blur', async (e) => {
         if (!isAdmin) return;
-        const docRef = doc(db, "labor_costs", id);
-        // 確認資料是否有實質變動 (避免單純點擊就觸發更新)
-        const oldData = allData.find(d => d.id === id);
-        const finalValue = (field === 'laborTime') ? Number(value) : value.trim();
+        const td = e.target.closest('td[contenteditable="true"]');
+        if (!td) return;
+
+        const id = td.closest('tr').dataset.id;
+        const field = td.dataset.field;
+        const newValue = td.innerText.trim();
         
-        if (oldData && oldData[field] === finalValue) return; 
+        // 檢查值是否真的有改變，避免無效連線
+        const oldData = allData.find(d => d.id === id);
+        const finalValue = (field === 'laborTime') ? Number(newValue) : newValue;
+        if (oldData && oldData[field] === finalValue) return;
 
         try {
-            await updateDoc(docRef, { [field]: finalValue });
+            await updateDoc(doc(db, "labor_costs", id), { [field]: finalValue });
             showToast('欄位修改已自動儲存', 'success');
-        } catch (e) {
-            showToast("更新失敗：" + e.message, 'error');
+        } catch (err) {
+            showToast("更新失敗：" + err.message, 'error');
         }
-    };
+    }, true); // 使用 Capture 階段確保觸發
 
-    // --- 更新選單篩選器 與 Datalist 自動提示 ---
+    // --- 更新選單篩選器 與 Datalist ---
     function updateFiltersAndDatalists() {
-        // 取得不重複的資料陣列
         const categories = [...new Set(allData.map(i => i.category).filter(Boolean))];
         const models = [...new Set(allData.map(i => i.machineModel).filter(Boolean))];
         const caps = [...new Set(allData.map(i => i.capacity).filter(Boolean))];
         const partNames = [...new Set(allData.map(i => i.partName).filter(Boolean))];
 
-        // 1. 更新搜尋下拉選單
         const updateSelect = (id, list) => {
             const select = document.getElementById(id);
             const current = select.value;
@@ -369,7 +346,6 @@
         updateSelect('filterMachine', models);
         updateSelect('filterCapacity', caps);
 
-        // 2. 更新表單的 Datalist (自動完成提示)
         const updateDatalist = (id, list) => {
             document.getElementById(id).innerHTML = list.map(i => `<option value="${i}">`).join('');
         };
@@ -379,7 +355,6 @@
         updateDatalist('listPartName', partNames);
     }
 
-    // --- 搜尋事件監聽 ---
     document.getElementById('globalSearch').oninput = renderTable;
     document.getElementById('filterCategory').onchange = renderTable;
     document.getElementById('filterMachine').onchange = renderTable;
