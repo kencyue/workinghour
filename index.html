@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>空調零件工時管理系統</title>
     <style>
         :root {
@@ -18,10 +18,10 @@
         .header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
         .user-info { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
 
-        input, select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; outline: none; transition: all 0.2s; background: #fff; }
+        input, select { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; outline: none; transition: all 0.2s; background: #fff; width: 100%; box-sizing: border-box; }
         input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .btn-primary { background: #3b82f6; color: white; }
         .btn-primary:hover { background: #2563eb; }
         .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
@@ -29,42 +29,95 @@
         .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-save { background: var(--admin-color); color: white; width: 100%; margin-top: 10px; }
 
-        .search-section { background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .search-section { background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
         .full-search { grid-column: 1 / -1; }
 
-        /* 折疊表單樣式 */
         #adminArea { display: none; background: #ffffff; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); }
         #toggleFormBtn { width: 100%; background: #ecfdf5; color: var(--admin-color); border: 1px dashed var(--admin-color); padding: 12px; font-weight: bold; margin-bottom: 15px;}
         #toggleFormBtn:hover { background: #d1fae5; }
         #formWrapper { display: none; padding-top: 15px; border-top: 1px solid #e2e8f0; }
-        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 
-        /* 表格與分頁控制 */
-        .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; }
-        .page-size-input { width: 60px; text-align: center; margin: 0 5px; padding: 4px; }
+        .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; flex-wrap: wrap; gap: 10px;}
+        .page-size-input { width: 60px; text-align: center; margin: 0 5px; padding: 6px; display: inline-block; }
         
+        /* 表格基礎樣式 */
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
         th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        
-        /* 排序表頭樣式 */
-        th.sortable { color: var(--text-muted); font-weight: 600; cursor: pointer; user-select: none; transition: background 0.2s; }
+        th.sortable { color: var(--text-muted); font-weight: 600; cursor: pointer; user-select: none; transition: background 0.2s; white-space: nowrap; }
         th.sortable:hover { background-color: var(--hover-bg); color: var(--primary); }
         .sort-icon { display: inline-block; width: 16px; font-size: 0.8rem; color: #94a3b8; text-align: center; }
         
-        tbody td { transition: background 0.2s; cursor: pointer; user-select: none; } /* 雙擊防反白 */
+        tbody td { transition: background 0.2s; cursor: pointer; user-select: none; touch-action: manipulation; } 
         tbody tr:hover td { background-color: var(--hover-bg); }
         
-        .editable[contenteditable="true"] { user-select: auto; } /* 讓可編輯欄位正常反白 */
+        .editable[contenteditable="true"] { user-select: auto; } 
         .editable[contenteditable="true"]:hover { background: #fef9c3 !important; border-radius: 4px; }
         .editable[contenteditable="true"]:focus { background: #fef08a !important; outline: none; border-radius: 4px; box-shadow: 0 0 0 2px #eab308; }
 
-        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
+        .pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
         .badge-admin { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
 
-        #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none; }
-        .toast { min-width: 250px; padding: 14px 20px; background: white; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-weight: 500; display: flex; align-items: center; transform: translateX(120%); opacity: 0; transition: all 0.3s; border-left: 5px solid transparent; pointer-events: auto; }
-        .toast.show { transform: translateX(0); opacity: 1; }
+        #toastContainer { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast { padding: 14px 20px; background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); font-weight: 500; display: flex; align-items: center; transform: translateY(120%); opacity: 0; transition: all 0.3s; border-left: 5px solid transparent; pointer-events: auto; font-size: 0.95rem;}
+        .toast.show { transform: translateY(0); opacity: 1; }
         .toast-success { border-left-color: #10b981; } .toast-error { border-left-color: #ef4444; } .toast-info { border-left-color: #3b82f6; }
+
+        /* =========================================
+           手機版 RWD 核心代碼 (小於 768px 觸發)
+           ========================================= */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; border-radius: 12px; }
+            
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .user-info { width: 100%; justify-content: space-between; }
+            
+            .search-section { padding: 15px; }
+            .input-row { grid-template-columns: 1fr; } /* 手機表單改為單排堆疊 */
+            
+            /* 將傳統表格轉換為「卡片式」排版 */
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; } /* 隱藏表頭，但保留給輔助閱讀器 */
+            
+            tbody tr { 
+                margin-bottom: 15px; 
+                border: 1px solid var(--border-color); 
+                border-radius: 10px; 
+                background: #fff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+                overflow: hidden;
+            }
+            
+            tbody td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+                border-bottom: 1px dashed var(--border-color); 
+                padding: 12px 15px; 
+                text-align: right; 
+                font-size: 0.95rem;
+            }
+            tbody td:last-child { border-bottom: none; background: #f8fafc; font-weight: bold; } /* 突顯最後一項(工時) */
+            
+            /* 利用 data-label 屬性自動產生標題 */
+            tbody td::before { 
+                content: attr(data-label); 
+                font-weight: 600; 
+                color: var(--text-muted); 
+                text-align: left;
+                padding-right: 15px;
+                white-space: nowrap;
+            }
+            
+            .editable { width: 60%; }
+            
+            .table-controls { flex-direction: column; align-items: flex-start; }
+            .pagination { width: 100%; justify-content: space-between; }
+            .btn { width: 100%; text-align: center; } /* 手機按鈕滿版更好點擊 */
+            .pagination .btn { width: auto; flex: 1; }
+            #pageInfo { text-align: center; margin: 0 10px; }
+        }
     </style>
 </head>
 <body>
@@ -81,7 +134,7 @@
     </div>
 
     <div class="search-section">
-        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 全域搜尋 (可直接輸入機種、品番等任意關鍵字)...">
+        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 全域搜尋 (可直接輸入機種、品番等關鍵字)...">
         <select id="filterCategory"><option value="">所有類別</option></select>
         <select id="filterCapacity"><option value="">所有能力別</option></select>
     </div>
@@ -89,7 +142,7 @@
     <div id="adminArea">
         <button id="toggleFormBtn" class="btn">➕ 展開建檔表單</button>
         <div id="formWrapper">
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">提示：點擊下方資料列可快速帶入；輸入類別後，能力別會自動限縮。</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">提示：點擊下方資料卡可帶入；輸入類別後，能力別會自動限縮。</p>
             <form id="addForm" class="input-row">
                 <input type="text" id="inCat" list="listCategory" placeholder="類別" required>
                 <input type="text" id="inModel" list="listModel" placeholder="機種" required>
@@ -189,7 +242,7 @@
         const adminArea = document.getElementById('adminArea');
         if (user) {
             isAdmin = user.email === adminEmail;
-            authArea.innerHTML = `<div class="user-info">${isAdmin ? '<span class="badge-admin">管理員</span>' : ''}<span>${user.email}</span><button class="btn btn-outline" id="logoutBtn" style="padding:4px 8px;font-size:0.8rem">登出</button></div>`;
+            authArea.innerHTML = `<div class="user-info">${isAdmin ? '<span class="badge-admin">管理員</span>' : ''}<span>${user.email}</span><button class="btn btn-outline" id="logoutBtn" style="padding:8px;font-size:0.8rem">登出</button></div>`;
             document.getElementById('logoutBtn').onclick = () => { signOut(auth); showToast('已登出', 'info'); };
             if (isAdmin) adminArea.style.display = "block";
         } else {
@@ -272,14 +325,15 @@
             return;
         }
 
+        // RWD 核心：加入了 data-label 屬性供手機版 CSS 抓取作為標題
         tbody.innerHTML = pagedData.map(item => `
             <tr data-id="${item.id}">
-                <td data-field="category" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.category||''}</td>
-                <td data-field="machineModel" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.machineModel||''}</td>
-                <td data-field="capacity" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.capacity||''}</td>
-                <td data-field="partName" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partName||''}</td>
-                <td data-field="partNumber" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partNumber||''}</td>
-                <td data-field="laborTime" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.laborTime||0}</td>
+                <td data-label="類別：" data-field="category" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.category||''}</td>
+                <td data-label="機種：" data-field="machineModel" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.machineModel||''}</td>
+                <td data-label="能力別：" data-field="capacity" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.capacity||''}</td>
+                <td data-label="零件名稱：" data-field="partName" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partName||''}</td>
+                <td data-label="品番：" data-field="partNumber" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partNumber||''}</td>
+                <td data-label="工時(分)：" data-field="laborTime" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.laborTime||0}</td>
             </tr>
         `).join('');
     }
@@ -287,16 +341,13 @@
     document.getElementById('prevBtn').onclick = () => { if(currentPage > 1) { currentPage--; renderTable(); }};
     document.getElementById('nextBtn').onclick = () => { currentPage++; renderTable(); };
 
-    // --- 事件分離：雙擊才複製 ---
     document.getElementById('tableBody').addEventListener('dblclick', (e) => {
         const td = e.target.closest('td');
         if (!td) return;
-        // 為了避免雙擊選取文字影響複製，加上 window.getSelection().removeAllRanges()
         window.getSelection().removeAllRanges();
         copyToClipboard(td.innerText.trim());
     });
 
-    // --- 事件分離：單擊帶入表單 ---
     document.getElementById('tableBody').addEventListener('click', (e) => {
         const td = e.target.closest('td');
         if (!td) return;
@@ -313,8 +364,6 @@
                 
                 formWrapper.style.display = 'block';
                 toggleBtn.innerHTML = '➖ 收起建檔表單';
-
-                // 帶入資料後，同步更新表單的能力別 Datalist
                 updateFormCapacityDatalist();
             }
         }
@@ -337,16 +386,11 @@
         catch (err) { showToast("錯誤："+err.message, 'error'); }
     }, true);
 
-
-    // ====== 階層鎖 (Cascading Dropdowns) 核心邏輯 ======
-
-    // 1. 初始化基礎選項
     function updateBaseFilters() {
         const cats = [...new Set(allData.map(i => i.category).filter(Boolean))];
         const models = [...new Set(allData.map(i => i.machineModel).filter(Boolean))];
         const names = [...new Set(allData.map(i => i.partName).filter(Boolean))];
 
-        // 刷新類別下拉與 Datalist
         const filterCat = document.getElementById('filterCategory');
         const curCat = filterCat.value;
         filterCat.innerHTML = `<option value="">所有類別</option>` + cats.map(i => `<option value="${i}">${i}</option>`).join('');
@@ -356,28 +400,22 @@
         document.getElementById('listModel').innerHTML = models.map(i => `<option value="${i}">`).join('');
         document.getElementById('listPartName').innerHTML = names.map(i => `<option value="${i}">`).join('');
 
-        // 觸發能力別的連動更新
         updateFilterCapacityDropdown();
         updateFormCapacityDatalist();
     }
 
-    // 2. 查詢區：類別 -> 鎖定 -> 能力別
     function updateFilterCapacityDropdown() {
         const catVal = document.getElementById('filterCategory').value;
         const capSelect = document.getElementById('filterCapacity');
         const currentCap = capSelect.value;
-
-        // 若有選類別，則過濾出該類別的能力別；若無，則顯示全部能力別
         let validCaps = catVal 
             ? [...new Set(allData.filter(d => d.category === catVal).map(d => d.capacity).filter(Boolean))]
             : [...new Set(allData.map(d => d.capacity).filter(Boolean))];
 
         capSelect.innerHTML = `<option value="">所有能力別</option>` + validCaps.map(i => `<option value="${i}">${i}</option>`).join('');
-        // 若原本選的能力別還在新的清單中，予以保留；否則清空
         capSelect.value = validCaps.includes(currentCap) ? currentCap : "";
     }
 
-    // 3. 建檔區：表單輸入類別 -> 鎖定 -> 能力別自動提示
     function updateFormCapacityDatalist() {
         const inCatVal = document.getElementById('inCat').value.trim();
         let validCaps = inCatVal
@@ -387,26 +425,11 @@
         document.getElementById('listCapacity').innerHTML = validCaps.map(i => `<option value="${i}">`).join('');
     }
 
-    // --- 綁定階層鎖事件 ---
-    document.getElementById('filterCategory').onchange = () => {
-        updateFilterCapacityDropdown(); // 更新能力別選單
-        currentPage = 1;
-        renderTable();
-    };
-
-    document.getElementById('filterCapacity').onchange = () => {
-        currentPage = 1; renderTable();
-    };
-    
-    document.getElementById('globalSearch').oninput = () => {
-        currentPage = 1; renderTable();
-    };
-
-    // 當表單中的「類別」輸入改變時，即時更新「能力別」的提示清單
+    document.getElementById('filterCategory').onchange = () => { updateFilterCapacityDropdown(); currentPage = 1; renderTable(); };
+    document.getElementById('filterCapacity').onchange = () => { currentPage = 1; renderTable(); };
+    document.getElementById('globalSearch').oninput = () => { currentPage = 1; renderTable(); };
     document.getElementById('inCat').addEventListener('input', updateFormCapacityDatalist);
 
-
-    // ====== 表單寫入 ======
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();
         if (!isAdmin) return;
@@ -435,7 +458,7 @@
                 createdAt: new Date()
             });
             document.getElementById('addForm').reset();
-            updateFormCapacityDatalist(); // 送出後重置能力別提示
+            updateFormCapacityDatalist(); 
             showToast("成功新增一筆資料！", 'success');
         } catch (e) {
             showToast("新增錯誤：" + e.message, 'error');
