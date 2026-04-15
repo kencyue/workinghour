@@ -51,9 +51,10 @@
         th.sortable:hover { background-color: var(--hover-bg); color: var(--primary); }
         .sort-icon { display: inline-block; width: 16px; font-size: 0.8rem; color: #94a3b8; text-align: center; }
         
-        tbody td { transition: background 0.2s; cursor: pointer; }
+        tbody td { transition: background 0.2s; cursor: pointer; user-select: none; } /* 雙擊防反白 */
         tbody tr:hover td { background-color: var(--hover-bg); }
         
+        .editable[contenteditable="true"] { user-select: auto; } /* 讓可編輯欄位正常反白 */
         .editable[contenteditable="true"]:hover { background: #fef9c3 !important; border-radius: 4px; }
         .editable[contenteditable="true"]:focus { background: #fef08a !important; outline: none; border-radius: 4px; box-shadow: 0 0 0 2px #eab308; }
 
@@ -88,7 +89,7 @@
     <div id="adminArea">
         <button id="toggleFormBtn" class="btn">➕ 展開建檔表單</button>
         <div id="formWrapper">
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">提示：點擊下方資料列可快速帶入；系統會自動防阻「同機種同品番」的重複資料。</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">提示：點擊下方資料列可快速帶入；輸入類別後，能力別會自動限縮。</p>
             <form id="addForm" class="input-row">
                 <input type="text" id="inCat" list="listCategory" placeholder="類別" required>
                 <input type="text" id="inModel" list="listModel" placeholder="機種" required>
@@ -150,11 +151,8 @@
     const provider = new GoogleAuthProvider();
     const adminEmail = "jingsyuan@gmail.com";
 
-    // 系統狀態變數
     let isAdmin = false;
     let allData = [];
-    
-    // 分頁與排序狀態變數
     let currentPage = 1;
     let itemsPerPage = 10;
     let currentSort = { field: 'createdAt', isAsc: false };
@@ -178,7 +176,6 @@
         } catch (err) {}
     }
 
-    // --- 折疊表單控制 ---
     const formWrapper = document.getElementById('formWrapper');
     const toggleBtn = document.getElementById('toggleFormBtn');
     toggleBtn.onclick = () => {
@@ -206,19 +203,15 @@
     const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(500));
     onSnapshot(q, (snapshot) => {
         allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        updateFiltersAndDatalists();
+        updateBaseFilters();
         renderTable();
     });
 
     document.querySelectorAll('th.sortable').forEach(th => {
         th.addEventListener('click', () => {
             const field = th.dataset.sort;
-            if (currentSort.field === field) {
-                currentSort.isAsc = !currentSort.isAsc;
-            } else {
-                currentSort.field = field;
-                currentSort.isAsc = true; 
-            }
+            if (currentSort.field === field) { currentSort.isAsc = !currentSort.isAsc; } 
+            else { currentSort.field = field; currentSort.isAsc = true; }
             currentPage = 1; 
             renderTable();
         });
@@ -232,14 +225,12 @@
         renderTable();
     });
 
-    // --- 核心渲染引擎 (移除機種下拉篩選) ---
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         const search = document.getElementById('globalSearch').value.toLowerCase();
         const fCat = document.getElementById('filterCategory').value;
         const fCap = document.getElementById('filterCapacity').value;
 
-        // 1. 執行篩選 (移除了 fModel 判斷)
         let filtered = allData.filter(item => {
             const matchSearch = Object.values(item).some(val => String(val).toLowerCase().includes(search));
             return matchSearch && (fCat==="" || item.category===fCat) && (fCap==="" || item.capacity===fCap);
@@ -247,16 +238,11 @@
 
         document.getElementById('dataCount').innerText = `找到 ${filtered.length} 筆資料`;
 
-        // 2. 執行排序
         if (currentSort.field !== 'createdAt') {
             filtered.sort((a, b) => {
-                let valA = a[currentSort.field] || '';
-                let valB = b[currentSort.field] || '';
-                if(typeof valA === 'number' && typeof valB === 'number') {
-                    return currentSort.isAsc ? valA - valB : valB - valA;
-                }
-                valA = String(valA).toLowerCase();
-                valB = String(valB).toLowerCase();
+                let valA = a[currentSort.field] || ''; let valB = b[currentSort.field] || '';
+                if(typeof valA === 'number' && typeof valB === 'number') return currentSort.isAsc ? valA - valB : valB - valA;
+                valA = String(valA).toLowerCase(); valB = String(valB).toLowerCase();
                 if (valA < valB) return currentSort.isAsc ? -1 : 1;
                 if (valA > valB) return currentSort.isAsc ? 1 : -1;
                 return 0;
@@ -266,18 +252,14 @@
         document.querySelectorAll('th.sortable').forEach(th => {
             const icon = th.querySelector('.sort-icon');
             if (th.dataset.sort === currentSort.field) {
-                icon.innerText = currentSort.isAsc ? '▲' : '▼';
-                th.style.color = 'var(--primary)';
+                icon.innerText = currentSort.isAsc ? '▲' : '▼'; th.style.color = 'var(--primary)';
             } else {
-                icon.innerText = '↕';
-                th.style.color = '';
+                icon.innerText = '↕'; th.style.color = '';
             }
         });
 
-        // 3. 執行分頁
         const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
         if (currentPage > totalPages) currentPage = totalPages;
-        
         const startIndex = (currentPage - 1) * itemsPerPage;
         const pagedData = filtered.slice(startIndex, startIndex + itemsPerPage);
 
@@ -285,7 +267,6 @@
         document.getElementById('prevBtn').disabled = currentPage === 1;
         document.getElementById('nextBtn').disabled = currentPage === totalPages;
 
-        // 4. 輸出 HTML
         if (pagedData.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px;">找不到符合的資料</td></tr>`;
             return;
@@ -306,15 +287,19 @@
     document.getElementById('prevBtn').onclick = () => { if(currentPage > 1) { currentPage--; renderTable(); }};
     document.getElementById('nextBtn').onclick = () => { currentPage++; renderTable(); };
 
-    const resetAndRender = () => { currentPage = 1; renderTable(); };
-    document.getElementById('globalSearch').oninput = resetAndRender;
-    document.getElementById('filterCategory').onchange = resetAndRender;
-    document.getElementById('filterCapacity').onchange = resetAndRender;
+    // --- 事件分離：雙擊才複製 ---
+    document.getElementById('tableBody').addEventListener('dblclick', (e) => {
+        const td = e.target.closest('td');
+        if (!td) return;
+        // 為了避免雙擊選取文字影響複製，加上 window.getSelection().removeAllRanges()
+        window.getSelection().removeAllRanges();
+        copyToClipboard(td.innerText.trim());
+    });
 
+    // --- 事件分離：單擊帶入表單 ---
     document.getElementById('tableBody').addEventListener('click', (e) => {
         const td = e.target.closest('td');
         if (!td) return;
-        copyToClipboard(td.innerText.trim());
 
         if (isAdmin) {
             const item = allData.find(d => d.id === td.closest('tr').dataset.id);
@@ -328,6 +313,9 @@
                 
                 formWrapper.style.display = 'block';
                 toggleBtn.innerHTML = '➖ 收起建檔表單';
+
+                // 帶入資料後，同步更新表單的能力別 Datalist
+                updateFormCapacityDatalist();
             }
         }
     });
@@ -349,31 +337,76 @@
         catch (err) { showToast("錯誤："+err.message, 'error'); }
     }, true);
 
-    function updateFiltersAndDatalists() {
-        const getUnique = field => [...new Set(allData.map(i => i[field]).filter(Boolean))];
-        const cats = getUnique('category'), models = getUnique('machineModel'), caps = getUnique('capacity'), names = getUnique('partName');
 
-        const updateSel = (id, list) => {
-            const el = document.getElementById(id);
-            if(el) { // 確保元素存在
-                const cur = el.value;
-                el.innerHTML = `<option value="">全部</option>` + list.map(i => `<option value="${i}">${i}</option>`).join('');
-                el.value = cur;
-            }
-        };
-        updateSel('filterCategory', cats); 
-        updateSel('filterCapacity', caps);
+    // ====== 階層鎖 (Cascading Dropdowns) 核心邏輯 ======
 
-        const updateDL = (id, list) => {
-            const el = document.getElementById(id);
-            if(el) el.innerHTML = list.map(i => `<option value="${i}">`).join('');
-        };
-        updateDL('listCategory', cats); 
-        updateDL('listModel', models); // 雖然拿掉下拉選單，但輸入框的自動提示(Datalist)還是要更新
-        updateDL('listCapacity', caps); 
-        updateDL('listPartName', names);
+    // 1. 初始化基礎選項
+    function updateBaseFilters() {
+        const cats = [...new Set(allData.map(i => i.category).filter(Boolean))];
+        const models = [...new Set(allData.map(i => i.machineModel).filter(Boolean))];
+        const names = [...new Set(allData.map(i => i.partName).filter(Boolean))];
+
+        // 刷新類別下拉與 Datalist
+        const filterCat = document.getElementById('filterCategory');
+        const curCat = filterCat.value;
+        filterCat.innerHTML = `<option value="">所有類別</option>` + cats.map(i => `<option value="${i}">${i}</option>`).join('');
+        filterCat.value = curCat;
+
+        document.getElementById('listCategory').innerHTML = cats.map(i => `<option value="${i}">`).join('');
+        document.getElementById('listModel').innerHTML = models.map(i => `<option value="${i}">`).join('');
+        document.getElementById('listPartName').innerHTML = names.map(i => `<option value="${i}">`).join('');
+
+        // 觸發能力別的連動更新
+        updateFilterCapacityDropdown();
+        updateFormCapacityDatalist();
     }
 
+    // 2. 查詢區：類別 -> 鎖定 -> 能力別
+    function updateFilterCapacityDropdown() {
+        const catVal = document.getElementById('filterCategory').value;
+        const capSelect = document.getElementById('filterCapacity');
+        const currentCap = capSelect.value;
+
+        // 若有選類別，則過濾出該類別的能力別；若無，則顯示全部能力別
+        let validCaps = catVal 
+            ? [...new Set(allData.filter(d => d.category === catVal).map(d => d.capacity).filter(Boolean))]
+            : [...new Set(allData.map(d => d.capacity).filter(Boolean))];
+
+        capSelect.innerHTML = `<option value="">所有能力別</option>` + validCaps.map(i => `<option value="${i}">${i}</option>`).join('');
+        // 若原本選的能力別還在新的清單中，予以保留；否則清空
+        capSelect.value = validCaps.includes(currentCap) ? currentCap : "";
+    }
+
+    // 3. 建檔區：表單輸入類別 -> 鎖定 -> 能力別自動提示
+    function updateFormCapacityDatalist() {
+        const inCatVal = document.getElementById('inCat').value.trim();
+        let validCaps = inCatVal
+            ? [...new Set(allData.filter(d => d.category === inCatVal).map(d => d.capacity).filter(Boolean))]
+            : [...new Set(allData.map(d => d.capacity).filter(Boolean))];
+
+        document.getElementById('listCapacity').innerHTML = validCaps.map(i => `<option value="${i}">`).join('');
+    }
+
+    // --- 綁定階層鎖事件 ---
+    document.getElementById('filterCategory').onchange = () => {
+        updateFilterCapacityDropdown(); // 更新能力別選單
+        currentPage = 1;
+        renderTable();
+    };
+
+    document.getElementById('filterCapacity').onchange = () => {
+        currentPage = 1; renderTable();
+    };
+    
+    document.getElementById('globalSearch').oninput = () => {
+        currentPage = 1; renderTable();
+    };
+
+    // 當表單中的「類別」輸入改變時，即時更新「能力別」的提示清單
+    document.getElementById('inCat').addEventListener('input', updateFormCapacityDatalist);
+
+
+    // ====== 表單寫入 ======
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();
         if (!isAdmin) return;
@@ -402,6 +435,7 @@
                 createdAt: new Date()
             });
             document.getElementById('addForm').reset();
+            updateFormCapacityDatalist(); // 送出後重置能力別提示
             showToast("成功新增一筆資料！", 'success');
         } catch (e) {
             showToast("新增錯誤：" + e.message, 'error');
