@@ -5,68 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>空調零件工時管理系統</title>
     <style>
-        :root { --primary: #2c3e50; --admin: #27ae60; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        /* 現代化色彩與字體變數 */
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --primary: #0f172a;
+            --admin-color: #059669;
+            --border-color: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --hover-bg: #f1f5f9;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
         
-        /* 頂部列 */
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
-        .user-info { font-size: 14px; color: #666; }
-        
-        /* 搜尋區塊 */
-        .search-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        .search-section input, .search-section select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        /* 頂部導航 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+        .user-info { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
+
+        /* 輸入框與按鈕現代化 */
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+        input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-outline:hover { background: var(--hover-bg); }
+        .btn-save { background: var(--admin-color); color: white; margin-top: 10px; width: 100%; }
+        .btn-save:hover { background: #047857; }
+
+        /* 區塊樣式 */
+        .search-section {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
         .full-search { grid-column: 1 / -1; }
 
-        /* 新增區塊 (管理員) */
-        #adminArea { display: none; background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed var(--admin); }
-        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+        #adminArea {
+            display: none;
+            background: #ecfdf5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid #a7f3d0;
+        }
+        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;}
         
-        /* 表格樣式 */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
-        th { background: var(--primary); color: white; cursor: pointer; }
-        tr:hover { background: #f1f1f1; }
+        /* 現代化表格 */
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
+        tbody tr { transition: background-color 0.2s; cursor: pointer; }
+        tbody tr:hover { background-color: var(--hover-bg); }
         
-        /* 管理員編輯樣式 */
-        .editable { background: #fffde7; cursor: text; border-bottom: 2px dashed #ffd600; }
-        .editable:focus { background: #fff9c4; outline: none; border-bottom: 2px solid #f9a825; }
+        /* 管理員編輯狀態 */
+        .editable { position: relative; }
+        .editable[contenteditable="true"]:hover { background: #fef9c3; border-radius: 4px; }
+        .editable[contenteditable="true"]:focus { background: #fef08a; outline: none; border-radius: 4px; box-shadow: 0 0 0 2px #eab308; }
 
-        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; transition: 0.3s; }
-        .btn-login { background: #4285F4; color: white; }
-        .btn-save { background: var(--admin); color: white; margin-top: 10px; width: 100%; }
-        .badge-admin { background: #e8f5e9; color: var(--admin); padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        .badge-admin { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+
+        /* 自訂 Toast 彈窗樣式 */
+        #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+        .toast {
+            min-width: 250px;
+            padding: 14px 20px;
+            background: white;
+            color: var(--text-main);
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 5px solid transparent;
+        }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast-success { border-left-color: #10b981; }
+        .toast-error { border-left-color: #ef4444; }
+        .toast-info { border-left-color: #3b82f6; }
     </style>
 </head>
 <body>
+
+<datalist id="listCategory"></datalist>
+<datalist id="listModel"></datalist>
+<datalist id="listCapacity"></datalist>
+<datalist id="listPartName"></datalist>
 
 <div class="container">
     <div class="header">
         <h1>工時費查詢系統</h1>
         <div id="authArea">
-            <button class="btn btn-login" id="loginBtn">Google 登入 (管理員)</button>
+            <button class="btn btn-primary" id="loginBtn">管理員登入</button>
         </div>
     </div>
 
     <div class="search-section">
-        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 全域搜尋 (輸入關鍵字即可篩選目前顯示的資料)...">
+        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 關鍵字搜尋 (類別、機種、能力別、零件、品番)...">
         <select id="filterCategory"><option value="">所有類別</option></select>
         <select id="filterMachine"><option value="">所有機種</option></select>
         <select id="filterCapacity"><option value="">所有能力別</option></select>
     </div>
 
     <div id="adminArea">
-        <strong style="color:var(--admin)">✚ 新增資料項目</strong>
+        <strong style="color:var(--admin-color); font-size: 1.1rem;">✚ 新增 / 複製工時項目</strong>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 0 0;">提示：在下方輸入時會自動提示現有資料；點擊下方現有資料列可快速帶入此表單。</p>
         <form id="addForm" class="input-row">
-            <input type="text" id="inCat" placeholder="類別" required>
-            <input type="text" id="inModel" placeholder="機種" required>
-            <input type="text" id="inCap" placeholder="能力別" required>
-            <input type="text" id="inName" placeholder="零件名稱" required>
+            <input type="text" id="inCat" list="listCategory" placeholder="類別 (如:室外機)" required>
+            <input type="text" id="inModel" list="listModel" placeholder="機種" required>
+            <input type="text" id="inCap" list="listCapacity" placeholder="能力別" required>
+            <input type="text" id="inName" list="listPartName" placeholder="零件名稱" required>
             <input type="text" id="inNo" placeholder="品番" required>
             <input type="number" id="inTime" placeholder="工時(分)" required>
-            <button type="submit" class="btn btn-save">儲存到資料庫</button>
+            <button type="submit" class="btn btn-save">儲存寫入資料庫</button>
         </form>
-        <p style="font-size: 12px; color: #666; margin-top: 10px;">提示：登入後可直接點擊下方表格內文字進行即時修改並自動存檔。</p>
     </div>
 
     <table id="mainTable">
@@ -81,10 +181,12 @@
             </tr>
         </thead>
         <tbody id="tableBody">
-            <tr><td colspan="6" style="text-align:center">資料載入中...</td></tr>
+            <tr><td colspan="6" style="text-align:center; padding: 40px; color: #94a3b8;">資料載入中...</td></tr>
         </tbody>
     </table>
 </div>
+
+<div id="toastContainer"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
@@ -97,8 +199,7 @@
         projectId: "working-hours-dce8e",
         storageBucket: "working-hours-dce8e.firebasestorage.app",
         messagingSenderId: "866502758932",
-        appId: "1:866502758932:web:3080e744b57e8898468d01",
-        measurementId: "G-BB7FM14GPN"
+        appId: "1:866502758932:web:3080e744b57e8898468d01"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -110,32 +211,72 @@
     let isAdmin = false;
     let allData = [];
 
-    // --- 權限控管 ---
+    // --- 自訂 Toast 提示系統 ---
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        // 依據類型加入小圖示
+        let icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '💡';
+        toast.innerHTML = `<span style="margin-right:8px">${icon}</span> ${message}`;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000); // 3秒後自動消失
+    }
+
+    // --- 權限控管與登出修復 ---
     onAuthStateChanged(auth, (user) => {
         const authArea = document.getElementById('authArea');
         const adminArea = document.getElementById('adminArea');
         
         if (user) {
             isAdmin = user.email === adminEmail;
-            authArea.innerHTML = `<span class="user-info">${user.email} ${isAdmin ? '<span class="badge-admin">管理員</span>' : ''}</span> <button class="btn" onclick="location.reload()">登出</button>`;
-            authArea.querySelector('button').onclick = () => signOut(auth);
-            if (isAdmin) adminArea.style.display = "block";
+            authArea.innerHTML = `
+                <div class="user-info">
+                    ${isAdmin ? '<span class="badge-admin">管理員權限</span>' : ''}
+                    <span>${user.email}</span>
+                    <button class="btn btn-outline" id="logoutBtn" style="padding: 6px 12px; font-size: 0.85rem;">登出</button>
+                </div>
+            `;
+            
+            // 修復登出功能：使用 signOut 而非 reload
+            document.getElementById('logoutBtn').onclick = async () => {
+                try {
+                    await signOut(auth);
+                    showToast('已成功登出', 'info');
+                } catch (error) {
+                    showToast('登出失敗', 'error');
+                }
+            };
+            
+            if (isAdmin) {
+                adminArea.style.display = "block";
+                showToast('管理員模式已啟用', 'success');
+            }
         } else {
             isAdmin = false;
+            adminArea.style.display = "none";
+            authArea.innerHTML = `<button class="btn btn-primary" id="loginBtn">管理員登入</button>`;
             document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         }
-        renderTable(); // 權限變動後重新渲染表格
-    });
-
-    // --- 資料讀取 (監聽前 20 筆) ---
-    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(20));
-    onSnapshot(q, (snapshot) => {
-        allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        updateFilters();
         renderTable();
     });
 
-    // --- 渲染表格 ---
+    // --- 資料讀取與監聽 ---
+    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(50)); // 放寬預設筆數以利搜尋與自動提示
+    onSnapshot(q, (snapshot) => {
+        allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        updateFiltersAndDatalists();
+        renderTable();
+    });
+
+    // --- 渲染表格與綁定列點擊事件 ---
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         const globalSearch = document.getElementById('globalSearch').value.toLowerCase();
@@ -144,7 +285,7 @@
         const fCap = document.getElementById('filterCapacity').value;
 
         // 篩選邏輯
-        const filtered = allData.filter(item => {
+        let filtered = allData.filter(item => {
             const matchGlobal = Object.values(item).some(val => String(val).toLowerCase().includes(globalSearch));
             const matchCat = fCat === "" || item.category === fCat;
             const matchModel = fModel === "" || item.machineModel === fModel;
@@ -152,8 +293,16 @@
             return matchGlobal && matchCat && matchModel && matchCap;
         });
 
+        // 限制顯示 20 筆
+        filtered = filtered.slice(0, 20);
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px;">找不到符合的資料</td></tr>`;
+            return;
+        }
+
         tbody.innerHTML = filtered.map(item => `
-            <tr>
+            <tr onclick="populateForm('${item.id}', event)">
                 <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'category', this.innerText)">${item.category || ''}</td>
                 <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'machineModel', this.innerText)">${item.machineModel || ''}</td>
                 <td class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}" onblur="updateField('${item.id}', 'capacity', this.innerText)">${item.capacity || ''}</td>
@@ -164,35 +313,70 @@
         `).join('');
     }
 
+    // --- 將點選的列資料帶入新增表單 ---
+    window.populateForm = (id, event) => {
+        if (!isAdmin) return;
+        
+        // 如果使用者正在點擊編輯內容(focus 狀態)，則不觸發複製，避免衝突
+        if (document.activeElement.isContentEditable) return;
+
+        const item = allData.find(d => d.id === id);
+        if (item) {
+            document.getElementById('inCat').value = item.category || '';
+            document.getElementById('inModel').value = item.machineModel || '';
+            document.getElementById('inCap').value = item.capacity || '';
+            document.getElementById('inName').value = item.partName || '';
+            document.getElementById('inNo').value = item.partNumber || '';
+            document.getElementById('inTime').value = item.laborTime || '';
+            showToast('已複製該列資料至新增表單', 'info');
+        }
+    };
+
     // --- 即時更新資料庫 ---
     window.updateField = async (id, field, value) => {
         if (!isAdmin) return;
         const docRef = doc(db, "labor_costs", id);
+        // 確認資料是否有實質變動 (避免單純點擊就觸發更新)
+        const oldData = allData.find(d => d.id === id);
+        const finalValue = (field === 'laborTime') ? Number(value) : value.trim();
+        
+        if (oldData && oldData[field] === finalValue) return; 
+
         try {
-            let finalValue = (field === 'laborTime') ? Number(value) : value;
             await updateDoc(docRef, { [field]: finalValue });
-            console.log("更新成功");
+            showToast('欄位修改已自動儲存', 'success');
         } catch (e) {
-            alert("更新失敗：" + e.message);
+            showToast("更新失敗：" + e.message, 'error');
         }
     };
 
-    // --- 更新選單篩選器 ---
-    function updateFilters() {
-        const categories = [...new Set(allData.map(i => i.category))];
-        const models = [...new Set(allData.map(i => i.machineModel))];
-        const caps = [...new Set(allData.map(i => i.capacity))];
+    // --- 更新選單篩選器 與 Datalist 自動提示 ---
+    function updateFiltersAndDatalists() {
+        // 取得不重複的資料陣列
+        const categories = [...new Set(allData.map(i => i.category).filter(Boolean))];
+        const models = [...new Set(allData.map(i => i.machineModel).filter(Boolean))];
+        const caps = [...new Set(allData.map(i => i.capacity).filter(Boolean))];
+        const partNames = [...new Set(allData.map(i => i.partName).filter(Boolean))];
 
+        // 1. 更新搜尋下拉選單
         const updateSelect = (id, list) => {
             const select = document.getElementById(id);
             const current = select.value;
             select.innerHTML = `<option value="">全部</option>` + list.map(i => `<option value="${i}">${i}</option>`).join('');
             select.value = current;
         };
-
         updateSelect('filterCategory', categories);
         updateSelect('filterMachine', models);
         updateSelect('filterCapacity', caps);
+
+        // 2. 更新表單的 Datalist (自動完成提示)
+        const updateDatalist = (id, list) => {
+            document.getElementById(id).innerHTML = list.map(i => `<option value="${i}">`).join('');
+        };
+        updateDatalist('listCategory', categories);
+        updateDatalist('listModel', models);
+        updateDatalist('listCapacity', caps);
+        updateDatalist('listPartName', partNames);
     }
 
     // --- 搜尋事件監聽 ---
@@ -201,25 +385,25 @@
     document.getElementById('filterMachine').onchange = renderTable;
     document.getElementById('filterCapacity').onchange = renderTable;
 
-    // --- 新增資料 ---
+    // --- 處理表單新增 ---
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();
         if (!isAdmin) return;
 
         try {
             await addDoc(collection(db, "labor_costs"), {
-                category: document.getElementById('inCat').value,
-                machineModel: document.getElementById('inModel').value,
-                capacity: document.getElementById('inCap').value,
-                partName: document.getElementById('inName').value,
-                partNumber: document.getElementById('inNo').value,
+                category: document.getElementById('inCat').value.trim(),
+                machineModel: document.getElementById('inModel').value.trim(),
+                capacity: document.getElementById('inCap').value.trim(),
+                partName: document.getElementById('inName').value.trim(),
+                partNumber: document.getElementById('inNo').value.trim(),
                 laborTime: Number(document.getElementById('inTime').value),
                 createdAt: new Date()
             });
             document.getElementById('addForm').reset();
-            alert("新增成功！");
+            showToast("成功新增一筆資料！", 'success');
         } catch (e) {
-            alert("錯誤：" + e.message);
+            showToast("新增錯誤：" + e.message, 'error');
         }
     };
 </script>
