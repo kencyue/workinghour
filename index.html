@@ -5,97 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>空調零件工時管理系統</title>
     <style>
-        /* 現代化色彩與字體變數 */
         :root {
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --primary: #0f172a;
-            --admin-color: #059669;
-            --border-color: #e2e8f0;
-            --text-main: #334155;
-            --text-muted: #64748b;
-            --hover-bg: #f1f5f9;
+            --bg-color: #f8fafc; --card-bg: #ffffff; --primary: #0f172a;
+            --admin-color: #059669; --border-color: #e2e8f0; --text-main: #334155;
+            --text-muted: #64748b; --hover-bg: #f1f5f9;
         }
 
-        body {
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 30px 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 30px 20px; }
+        .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px; }
         .header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
         .user-info { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 12px; }
 
-        input, select {
-            padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px;
-            font-size: 0.95rem; outline: none; transition: all 0.2s; background-color: #fff;
-        }
-        input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        input, select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; outline: none; transition: all 0.2s; background: #fff; }
+        input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        .btn {
-            padding: 10px 18px; border: none; border-radius: 8px; font-size: 0.95rem;
-            font-weight: 500; cursor: pointer; transition: all 0.2s;
-        }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
         .btn-primary { background: #3b82f6; color: white; }
         .btn-primary:hover { background: #2563eb; }
         .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
         .btn-outline:hover { background: var(--hover-bg); }
-        .btn-save { background: var(--admin-color); color: white; margin-top: 10px; width: 100%; }
-        .btn-save:hover { background: #047857; }
+        .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-save { background: var(--admin-color); color: white; width: 100%; margin-top: 10px; }
 
-        .search-section {
-            background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px;
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;
-        }
+        .search-section { background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
         .full-search { grid-column: 1 / -1; }
 
-        #adminArea {
-            display: none; background: #ecfdf5; padding: 20px; border-radius: 12px;
-            margin-bottom: 24px; border: 1px solid #a7f3d0;
-        }
-        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;}
+        /* 折疊表單樣式 */
+        #adminArea { display: none; background: #ffffff; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); }
+        #toggleFormBtn { width: 100%; background: #ecfdf5; color: var(--admin-color); border: 1px dashed var(--admin-color); padding: 12px; font-weight: bold; margin-bottom: 15px;}
+        #toggleFormBtn:hover { background: #d1fae5; }
+        #formWrapper { display: none; padding-top: 15px; border-top: 1px solid #e2e8f0; }
+        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+
+        /* 表格與分頁控制 */
+        .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; }
+        .page-size-input { width: 60px; text-align: center; margin: 0 5px; padding: 4px; }
         
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
-        tbody td { transition: background-color 0.2s; cursor: pointer; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        
+        /* 排序表頭樣式 */
+        th.sortable { color: var(--text-muted); font-weight: 600; cursor: pointer; user-select: none; transition: background 0.2s; }
+        th.sortable:hover { background-color: var(--hover-bg); color: var(--primary); }
+        .sort-icon { display: inline-block; width: 16px; font-size: 0.8rem; color: #94a3b8; text-align: center; }
+        
+        tbody td { transition: background 0.2s; cursor: pointer; }
         tbody tr:hover td { background-color: var(--hover-bg); }
         
-        /* 儲存格點擊與編輯回饋 */
-        .editable { position: relative; }
         .editable[contenteditable="true"]:hover { background: #fef9c3 !important; border-radius: 4px; }
         .editable[contenteditable="true"]:focus { background: #fef08a !important; outline: none; border-radius: 4px; box-shadow: 0 0 0 2px #eab308; }
 
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
         .badge-admin { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
 
-        /* Toast 彈窗樣式 */
         #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none; }
-        .toast {
-            min-width: 250px; padding: 14px 20px; background: white; color: var(--text-main);
-            border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-            font-weight: 500; display: flex; align-items: center; pointer-events: auto;
-            transform: translateX(120%); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border-left: 5px solid transparent;
-        }
+        .toast { min-width: 250px; padding: 14px 20px; background: white; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-weight: 500; display: flex; align-items: center; transform: translateX(120%); opacity: 0; transition: all 0.3s; border-left: 5px solid transparent; pointer-events: auto; }
         .toast.show { transform: translateX(0); opacity: 1; }
-        .toast-success { border-left-color: #10b981; }
-        .toast-error { border-left-color: #ef4444; }
-        .toast-info { border-left-color: #3b82f6; }
+        .toast-success { border-left-color: #10b981; } .toast-error { border-left-color: #ef4444; } .toast-info { border-left-color: #3b82f6; }
     </style>
 </head>
 <body>
@@ -108,47 +76,59 @@
 <div class="container">
     <div class="header">
         <h1>工時費查詢系統</h1>
-        <div id="authArea">
-            <button class="btn btn-primary" id="loginBtn">管理員登入</button>
-        </div>
+        <div id="authArea"><button class="btn btn-primary" id="loginBtn">管理員登入</button></div>
     </div>
 
     <div class="search-section">
-        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 關鍵字搜尋 (類別、機種、能力別、零件、品番)...">
+        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 全域搜尋 (可直接輸入機種、品番等任意關鍵字)...">
         <select id="filterCategory"><option value="">所有類別</option></select>
-        <select id="filterMachine"><option value="">所有機種</option></select>
         <select id="filterCapacity"><option value="">所有能力別</option></select>
     </div>
 
     <div id="adminArea">
-        <strong style="color:var(--admin-color); font-size: 1.1rem;">✚ 新增 / 複製工時項目</strong>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 6px 0 0 0;">提示：點擊下方表格任意欄位，即可自動複製該文字，並將整列資料帶入此表單。</p>
-        <form id="addForm" class="input-row">
-            <input type="text" id="inCat" list="listCategory" placeholder="類別" required>
-            <input type="text" id="inModel" list="listModel" placeholder="機種" required>
-            <input type="text" id="inCap" list="listCapacity" placeholder="能力別" required>
-            <input type="text" id="inName" list="listPartName" placeholder="零件名稱" required>
-            <input type="text" id="inNo" placeholder="品番" required>
-            <input type="number" id="inTime" placeholder="工時(分)" required>
-            <button type="submit" class="btn btn-save">儲存寫入資料庫</button>
-        </form>
+        <button id="toggleFormBtn" class="btn">➕ 展開建檔表單</button>
+        <div id="formWrapper">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">提示：點擊下方資料列可快速帶入；系統會自動防阻「同機種同品番」的重複資料。</p>
+            <form id="addForm" class="input-row">
+                <input type="text" id="inCat" list="listCategory" placeholder="類別" required>
+                <input type="text" id="inModel" list="listModel" placeholder="機種" required>
+                <input type="text" id="inCap" list="listCapacity" placeholder="能力別" required>
+                <input type="text" id="inName" list="listPartName" placeholder="零件名稱" required>
+                <input type="text" id="inNo" placeholder="品番" required>
+                <input type="number" id="inTime" placeholder="工時(分)" required>
+                <button type="submit" class="btn btn-save">儲存寫入資料庫</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-controls">
+        <div style="color:var(--text-muted); font-size:0.85rem;" id="dataCount">載入中...</div>
+        <div>
+            <label>每頁顯示 <input type="number" id="pageSizeInput" class="page-size-input" value="10" min="1" max="100"> 筆</label>
+        </div>
     </div>
 
     <table id="mainTable">
         <thead>
             <tr>
-                <th>類別</th>
-                <th>機種</th>
-                <th>能力別</th>
-                <th>零件名稱</th>
-                <th>品番</th>
-                <th>工時(分)</th>
+                <th class="sortable" data-sort="category">類別 <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="machineModel">機種 <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="capacity">能力別 <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="partName">零件名稱 <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="partNumber">品番 <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="laborTime">工時(分) <span class="sort-icon"></span></th>
             </tr>
         </thead>
         <tbody id="tableBody">
             <tr><td colspan="6" style="text-align:center; padding: 40px; color: #94a3b8;">資料載入中...</td></tr>
         </tbody>
     </table>
+
+    <div class="pagination">
+        <button id="prevBtn" class="btn btn-outline">◄ 上一頁</button>
+        <span id="pageInfo" style="font-size:0.9rem; color:var(--text-muted)">第 1 頁 / 共 1 頁</span>
+        <button id="nextBtn" class="btn btn-outline">下一頁 ►</button>
+    </div>
 </div>
 
 <div id="toastContainer"></div>
@@ -161,10 +141,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyDvTOPoq1WdGLCOafP6GSZlxKR8TzM0Aqs",
         authDomain: "working-hours-dce8e.firebaseapp.com",
-        projectId: "working-hours-dce8e",
-        storageBucket: "working-hours-dce8e.firebasestorage.app",
-        messagingSenderId: "866502758932",
-        appId: "1:866502758932:web:3080e744b57e8898468d01"
+        projectId: "working-hours-dce8e"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -173,128 +150,174 @@
     const provider = new GoogleAuthProvider();
     const adminEmail = "jingsyuan@gmail.com";
 
+    // 系統狀態變數
     let isAdmin = false;
     let allData = [];
+    
+    // 分頁與排序狀態變數
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    let currentSort = { field: 'createdAt', isAsc: false };
 
-    // --- Toast 彈窗 ---
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        let icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '📋';
-        toast.innerHTML = `<span style="margin-right:8px">${icon}</span> ${message}`;
+        toast.innerHTML = `<span style="margin-right:8px">${type === 'success'?'✅':type==='error'?'❌':'📋'}</span> ${message}`;
         container.appendChild(toast);
         setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 2500); 
+        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2500); 
     }
 
-    // --- 複製到剪貼簿功能 (相容性處理) ---
     async function copyToClipboard(text) {
         if (!text) return;
         try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(text);
-            } else {
-                const textArea = document.createElement("textarea");
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            }
+            if (navigator.clipboard) await navigator.clipboard.writeText(text);
+            else { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
             showToast(`已複製：${text}`, 'info');
-        } catch (err) {
-            console.error('複製失敗', err);
-        }
+        } catch (err) {}
     }
 
-    // --- 權限控管 ---
+    // --- 折疊表單控制 ---
+    const formWrapper = document.getElementById('formWrapper');
+    const toggleBtn = document.getElementById('toggleFormBtn');
+    toggleBtn.onclick = () => {
+        const isHidden = formWrapper.style.display === '' || formWrapper.style.display === 'none';
+        formWrapper.style.display = isHidden ? 'block' : 'none';
+        toggleBtn.innerHTML = isHidden ? '➖ 收起建檔表單' : '➕ 展開建檔表單';
+    };
+
     onAuthStateChanged(auth, (user) => {
         const authArea = document.getElementById('authArea');
         const adminArea = document.getElementById('adminArea');
-        
         if (user) {
             isAdmin = user.email === adminEmail;
-            authArea.innerHTML = `
-                <div class="user-info">
-                    ${isAdmin ? '<span class="badge-admin">管理員</span>' : ''}
-                    <span>${user.email}</span>
-                    <button class="btn btn-outline" id="logoutBtn" style="padding: 6px 12px; font-size: 0.85rem;">登出</button>
-                </div>
-            `;
-            document.getElementById('logoutBtn').onclick = async () => {
-                await signOut(auth);
-                showToast('已成功登出', 'info');
-            };
+            authArea.innerHTML = `<div class="user-info">${isAdmin ? '<span class="badge-admin">管理員</span>' : ''}<span>${user.email}</span><button class="btn btn-outline" id="logoutBtn" style="padding:4px 8px;font-size:0.8rem">登出</button></div>`;
+            document.getElementById('logoutBtn').onclick = () => { signOut(auth); showToast('已登出', 'info'); };
             if (isAdmin) adminArea.style.display = "block";
         } else {
-            isAdmin = false;
-            adminArea.style.display = "none";
+            isAdmin = false; adminArea.style.display = "none";
             authArea.innerHTML = `<button class="btn btn-primary" id="loginBtn">管理員登入</button>`;
             document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
         }
         renderTable();
     });
 
-    // --- 資料讀取 ---
-    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(50));
+    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(500));
     onSnapshot(q, (snapshot) => {
         allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         updateFiltersAndDatalists();
         renderTable();
     });
 
-    // --- 渲染表格 (改用 data-屬性，移除了 inline onclick，解決衝突問題) ---
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const field = th.dataset.sort;
+            if (currentSort.field === field) {
+                currentSort.isAsc = !currentSort.isAsc;
+            } else {
+                currentSort.field = field;
+                currentSort.isAsc = true; 
+            }
+            currentPage = 1; 
+            renderTable();
+        });
+    });
+
+    document.getElementById('pageSizeInput').addEventListener('change', (e) => {
+        let val = parseInt(e.target.value);
+        if(val < 1) val = 1;
+        itemsPerPage = val;
+        currentPage = 1;
+        renderTable();
+    });
+
+    // --- 核心渲染引擎 (移除機種下拉篩選) ---
     function renderTable() {
         const tbody = document.getElementById('tableBody');
-        const globalSearch = document.getElementById('globalSearch').value.toLowerCase();
+        const search = document.getElementById('globalSearch').value.toLowerCase();
         const fCat = document.getElementById('filterCategory').value;
-        const fModel = document.getElementById('filterMachine').value;
         const fCap = document.getElementById('filterCapacity').value;
 
+        // 1. 執行篩選 (移除了 fModel 判斷)
         let filtered = allData.filter(item => {
-            const matchGlobal = Object.values(item).some(val => String(val).toLowerCase().includes(globalSearch));
-            const matchCat = fCat === "" || item.category === fCat;
-            const matchModel = fModel === "" || item.machineModel === fModel;
-            const matchCap = fCap === "" || item.capacity === fCap;
-            return matchGlobal && matchCat && matchModel && matchCap;
-        }).slice(0, 20);
+            const matchSearch = Object.values(item).some(val => String(val).toLowerCase().includes(search));
+            return matchSearch && (fCat==="" || item.category===fCat) && (fCap==="" || item.capacity===fCap);
+        });
 
-        if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px;">找不到符合的資料</td></tr>`;
+        document.getElementById('dataCount').innerText = `找到 ${filtered.length} 筆資料`;
+
+        // 2. 執行排序
+        if (currentSort.field !== 'createdAt') {
+            filtered.sort((a, b) => {
+                let valA = a[currentSort.field] || '';
+                let valB = b[currentSort.field] || '';
+                if(typeof valA === 'number' && typeof valB === 'number') {
+                    return currentSort.isAsc ? valA - valB : valB - valA;
+                }
+                valA = String(valA).toLowerCase();
+                valB = String(valB).toLowerCase();
+                if (valA < valB) return currentSort.isAsc ? -1 : 1;
+                if (valA > valB) return currentSort.isAsc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+            const icon = th.querySelector('.sort-icon');
+            if (th.dataset.sort === currentSort.field) {
+                icon.innerText = currentSort.isAsc ? '▲' : '▼';
+                th.style.color = 'var(--primary)';
+            } else {
+                icon.innerText = '↕';
+                th.style.color = '';
+            }
+        });
+
+        // 3. 執行分頁
+        const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const pagedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+        document.getElementById('pageInfo').innerText = `第 ${currentPage} 頁 / 共 ${totalPages} 頁`;
+        document.getElementById('prevBtn').disabled = currentPage === 1;
+        document.getElementById('nextBtn').disabled = currentPage === totalPages;
+
+        // 4. 輸出 HTML
+        if (pagedData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px;">找不到符合的資料</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = filtered.map(item => `
+        tbody.innerHTML = pagedData.map(item => `
             <tr data-id="${item.id}">
-                <td data-field="category" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.category || ''}</td>
-                <td data-field="machineModel" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.machineModel || ''}</td>
-                <td data-field="capacity" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.capacity || ''}</td>
-                <td data-field="partName" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.partName || ''}</td>
-                <td data-field="partNumber" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.partNumber || ''}</td>
-                <td data-field="laborTime" class="${isAdmin ? 'editable' : ''}" contenteditable="${isAdmin}">${item.laborTime || 0}</td>
+                <td data-field="category" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.category||''}</td>
+                <td data-field="machineModel" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.machineModel||''}</td>
+                <td data-field="capacity" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.capacity||''}</td>
+                <td data-field="partName" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partName||''}</td>
+                <td data-field="partNumber" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partNumber||''}</td>
+                <td data-field="laborTime" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.laborTime||0}</td>
             </tr>
         `).join('');
     }
 
-    // --- 整合：點擊儲存格 = 複製值 + 帶入表單 ---
+    document.getElementById('prevBtn').onclick = () => { if(currentPage > 1) { currentPage--; renderTable(); }};
+    document.getElementById('nextBtn').onclick = () => { currentPage++; renderTable(); };
+
+    const resetAndRender = () => { currentPage = 1; renderTable(); };
+    document.getElementById('globalSearch').oninput = resetAndRender;
+    document.getElementById('filterCategory').onchange = resetAndRender;
+    document.getElementById('filterCapacity').onchange = resetAndRender;
+
     document.getElementById('tableBody').addEventListener('click', (e) => {
         const td = e.target.closest('td');
         if (!td) return;
+        copyToClipboard(td.innerText.trim());
 
-        // 1. 複製點擊的欄位文字
-        const textToCopy = td.innerText.trim();
-        copyToClipboard(textToCopy);
-
-        // 2. 將整列資料帶入新增表單 (僅管理員)
         if (isAdmin) {
-            const tr = td.closest('tr');
-            const id = tr.dataset.id;
-            const item = allData.find(d => d.id === id);
-            
+            const item = allData.find(d => d.id === td.closest('tr').dataset.id);
             if (item) {
                 document.getElementById('inCat').value = item.category || '';
                 document.getElementById('inModel').value = item.machineModel || '';
@@ -302,76 +325,79 @@
                 document.getElementById('inName').value = item.partName || '';
                 document.getElementById('inNo').value = item.partNumber || '';
                 document.getElementById('inTime').value = item.laborTime || '';
+                
+                formWrapper.style.display = 'block';
+                toggleBtn.innerHTML = '➖ 收起建檔表單';
             }
         }
     });
 
-    // --- 監聽失去焦點 (Blur) 自動存檔 ---
     document.getElementById('tableBody').addEventListener('blur', async (e) => {
         if (!isAdmin) return;
         const td = e.target.closest('td[contenteditable="true"]');
         if (!td) return;
-
-        const id = td.closest('tr').dataset.id;
-        const field = td.dataset.field;
-        const newValue = td.innerText.trim();
         
-        // 檢查值是否真的有改變，避免無效連線
+        const id = td.closest('tr').dataset.id;
+        const field = td.dataset.sort || td.dataset.field; 
+        let newVal = td.innerText.trim();
+        const finalVal = (field === 'laborTime') ? Number(newVal) : newVal;
+        
         const oldData = allData.find(d => d.id === id);
-        const finalValue = (field === 'laborTime') ? Number(newValue) : newValue;
-        if (oldData && oldData[field] === finalValue) return;
+        if (oldData && oldData[field] === finalVal) return;
 
-        try {
-            await updateDoc(doc(db, "labor_costs", id), { [field]: finalValue });
-            showToast('欄位修改已自動儲存', 'success');
-        } catch (err) {
-            showToast("更新失敗：" + err.message, 'error');
-        }
-    }, true); // 使用 Capture 階段確保觸發
+        try { await updateDoc(doc(db, "labor_costs", id), { [field]: finalVal }); showToast('修改已儲存'); } 
+        catch (err) { showToast("錯誤："+err.message, 'error'); }
+    }, true);
 
-    // --- 更新選單篩選器 與 Datalist ---
     function updateFiltersAndDatalists() {
-        const categories = [...new Set(allData.map(i => i.category).filter(Boolean))];
-        const models = [...new Set(allData.map(i => i.machineModel).filter(Boolean))];
-        const caps = [...new Set(allData.map(i => i.capacity).filter(Boolean))];
-        const partNames = [...new Set(allData.map(i => i.partName).filter(Boolean))];
+        const getUnique = field => [...new Set(allData.map(i => i[field]).filter(Boolean))];
+        const cats = getUnique('category'), models = getUnique('machineModel'), caps = getUnique('capacity'), names = getUnique('partName');
 
-        const updateSelect = (id, list) => {
-            const select = document.getElementById(id);
-            const current = select.value;
-            select.innerHTML = `<option value="">全部</option>` + list.map(i => `<option value="${i}">${i}</option>`).join('');
-            select.value = current;
+        const updateSel = (id, list) => {
+            const el = document.getElementById(id);
+            if(el) { // 確保元素存在
+                const cur = el.value;
+                el.innerHTML = `<option value="">全部</option>` + list.map(i => `<option value="${i}">${i}</option>`).join('');
+                el.value = cur;
+            }
         };
-        updateSelect('filterCategory', categories);
-        updateSelect('filterMachine', models);
-        updateSelect('filterCapacity', caps);
+        updateSel('filterCategory', cats); 
+        updateSel('filterCapacity', caps);
 
-        const updateDatalist = (id, list) => {
-            document.getElementById(id).innerHTML = list.map(i => `<option value="${i}">`).join('');
+        const updateDL = (id, list) => {
+            const el = document.getElementById(id);
+            if(el) el.innerHTML = list.map(i => `<option value="${i}">`).join('');
         };
-        updateDatalist('listCategory', categories);
-        updateDatalist('listModel', models);
-        updateDatalist('listCapacity', caps);
-        updateDatalist('listPartName', partNames);
+        updateDL('listCategory', cats); 
+        updateDL('listModel', models); // 雖然拿掉下拉選單，但輸入框的自動提示(Datalist)還是要更新
+        updateDL('listCapacity', caps); 
+        updateDL('listPartName', names);
     }
 
-    document.getElementById('globalSearch').oninput = renderTable;
-    document.getElementById('filterCategory').onchange = renderTable;
-    document.getElementById('filterMachine').onchange = renderTable;
-    document.getElementById('filterCapacity').onchange = renderTable;
-
-    // --- 處理表單新增 ---
     document.getElementById('addForm').onsubmit = async (e) => {
         e.preventDefault();
         if (!isAdmin) return;
 
+        const newModel = document.getElementById('inModel').value.trim();
+        const newNo = document.getElementById('inNo').value.trim();
+
+        const isDuplicate = allData.some(item => 
+            item.machineModel === newModel && 
+            item.partNumber === newNo
+        );
+
+        if (isDuplicate) {
+            showToast(`⚠️ 寫入失敗：該機種 [${newModel}] 已存在相同品番 [${newNo}] 的資料！`, 'error');
+            return; 
+        }
+
         try {
             await addDoc(collection(db, "labor_costs"), {
                 category: document.getElementById('inCat').value.trim(),
-                machineModel: document.getElementById('inModel').value.trim(),
+                machineModel: newModel,
                 capacity: document.getElementById('inCap').value.trim(),
                 partName: document.getElementById('inName').value.trim(),
-                partNumber: document.getElementById('inNo').value.trim(),
+                partNumber: newNo,
                 laborTime: Number(document.getElementById('inTime').value),
                 createdAt: new Date()
             });
