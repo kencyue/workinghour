@@ -41,7 +41,6 @@
         .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; flex-wrap: wrap; gap: 10px;}
         .page-size-input { width: 60px; text-align: center; margin: 0 5px; padding: 6px; display: inline-block; }
         
-        /* 表格基礎樣式 */
         table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
         th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th.sortable { color: var(--text-muted); font-weight: 600; cursor: pointer; user-select: none; transition: background 0.2s; white-space: nowrap; }
@@ -64,7 +63,7 @@
         .toast-success { border-left-color: #10b981; } .toast-error { border-left-color: #ef4444; } .toast-info { border-left-color: #3b82f6; }
 
         /* =========================================
-           手機版 RWD 核心代碼 (小於 768px 觸發)
+           ✨ 修正版手機 RWD：完美對齊與防跑版
            ========================================= */
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -74,49 +73,56 @@
             .user-info { width: 100%; justify-content: space-between; }
             
             .search-section { padding: 15px; }
-            .input-row { grid-template-columns: 1fr; } /* 手機表單改為單排堆疊 */
+            .input-row { grid-template-columns: 1fr; } 
             
-            /* 將傳統表格轉換為「卡片式」排版 */
             table, thead, tbody, th, td, tr { display: block; }
-            thead tr { position: absolute; top: -9999px; left: -9999px; } /* 隱藏表頭，但保留給輔助閱讀器 */
+            thead { display: none; } /* 徹底隱藏表頭避免干擾 */
             
             tbody tr { 
-                margin-bottom: 15px; 
+                margin-bottom: 20px; 
                 border: 1px solid var(--border-color); 
-                border-radius: 10px; 
+                border-radius: 12px; 
                 background: #fff;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+                padding: 8px 0; /* 給卡片上下加一點內距 */
             }
             
             tbody td { 
                 display: flex; 
-                justify-content: space-between; 
-                align-items: center;
-                border-bottom: 1px dashed var(--border-color); 
-                padding: 12px 15px; 
-                text-align: right; 
+                justify-content: flex-start; 
+                align-items: flex-start; /* 針對多行文字靠上對齊 */
+                border-bottom: 1px solid #f1f5f9; 
+                padding: 12px 16px; 
                 font-size: 0.95rem;
+                gap: 12px; /* 標題與內容的間距 */
             }
-            tbody td:last-child { border-bottom: none; background: #f8fafc; font-weight: bold; } /* 突顯最後一項(工時) */
+            tbody td:last-child { border-bottom: none; background-color: #f8fafc; border-radius: 0 0 12px 12px;} 
             
-            /* 利用 data-label 屬性自動產生標題 */
+            /* 【修正重點一】：鎖定標題寬度，保證對齊基準線 */
             tbody td::before { 
                 content: attr(data-label); 
                 font-weight: 600; 
                 color: var(--text-muted); 
+                flex-shrink: 0; /* 絕對不允許縮水 */
+                width: 80px;    /* 固定標題寬度 */
                 text-align: left;
-                padding-right: 15px;
-                white-space: nowrap;
             }
             
-            .editable { width: 60%; }
+            /* 【修正重點二】：右側內容自動伸展，且允許長英文字串斷行 */
+            .editable, tbody td > span {
+                flex-grow: 1; 
+                text-align: right; 
+                word-break: break-all; /* 防止長品番撐破版面 */
+                min-height: 1.2em; /* 確保空白欄位也有高度可點擊 */
+            }
             
-            .table-controls { flex-direction: column; align-items: flex-start; }
-            .pagination { width: 100%; justify-content: space-between; }
-            .btn { width: 100%; text-align: center; } /* 手機按鈕滿版更好點擊 */
-            .pagination .btn { width: auto; flex: 1; }
-            #pageInfo { text-align: center; margin: 0 10px; }
+            .table-controls { flex-direction: column; align-items: stretch; gap: 15px; }
+            .table-controls > div { display: flex; justify-content: space-between; align-items: center; }
+            
+            .pagination { flex-wrap: nowrap; justify-content: space-between; gap: 10px; }
+            .btn { width: 100%; text-align: center; } 
+            .pagination .btn { width: auto; flex: 1; padding: 12px; }
+            #pageInfo { flex: 1; text-align: center; white-space: nowrap; font-size: 0.85rem;}
         }
     </style>
 </head>
@@ -325,7 +331,6 @@
             return;
         }
 
-        // RWD 核心：加入了 data-label 屬性供手機版 CSS 抓取作為標題
         tbody.innerHTML = pagedData.map(item => `
             <tr data-id="${item.id}">
                 <td data-label="類別：" data-field="category" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.category||''}</td>
