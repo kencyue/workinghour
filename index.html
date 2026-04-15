@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工時費建檔系統</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* 確保 padding 不會影響寬度 */
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>建立零件工時費</h2>
+    <form id="dataForm">
+        <div class="form-group">
+            <label for="machineType">機種 (Machine Model)</label>
+            <input type="text" id="machineType" placeholder="例如：挖掘機 Model-X" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category">類別 (Category)</label>
+            <input type="text" id="category" placeholder="例如：引擎系統" required>
+        </div>
+
+        <div class="form-group">
+            <label for="part">零件 (Part)</label>
+            <input type="text" id="part" placeholder="例如：啟動馬達" required>
+        </div>
+
+        <div class="form-group">
+            <label for="laborCost">工時費 (Labor Cost)</label>
+            <input type="number" id="laborCost" placeholder="例如：1500" required min="0">
+        </div>
+
+        <button type="submit" id="submitBtn">新增資料</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script type="module">
+    // 1. 引入 Firebase 核心與 Firestore 資料庫功能
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    // 2. 你的 Firebase 設定檔
+    const firebaseConfig = {
+        apiKey: "AIzaSyDvTOPoq1WdGLCOafP6GSZlxKR8TzM0Aqs",
+        authDomain: "working-hours-dce8e.firebaseapp.com",
+        projectId: "working-hours-dce8e",
+        storageBucket: "working-hours-dce8e.firebasestorage.app",
+        messagingSenderId: "866502758932",
+        appId: "1:866502758932:web:3080e744b57e8898468d01",
+        measurementId: "G-BB7FM14GPN"
+    };
+
+    // 3. 初始化 Firebase 與 Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 4. 處理表單送出事件
+    document.getElementById('dataForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); // 防止網頁重新載入
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const messageDiv = document.getElementById('message');
+        
+        // 取得使用者輸入的值
+        const machineType = document.getElementById('machineType').value;
+        const category = document.getElementById('category').value;
+        const part = document.getElementById('part').value;
+        const laborCost = Number(document.getElementById('laborCost').value);
+
+        // 鎖定按鈕避免重複提交
+        submitBtn.disabled = true;
+        submitBtn.textContent = "資料儲存中...";
+        messageDiv.textContent = "";
+
+        try {
+            // 將資料寫入 Firestore 中的 'labor_costs' 集合
+            const docRef = await addDoc(collection(db, "labor_costs"), {
+                machineType: machineType,
+                category: category,
+                part: part,
+                laborCost: laborCost,
+                createdAt: serverTimestamp() // 記錄建立時間
+            });
+            
+            // 成功訊息與表單重置
+            messageDiv.textContent = `✅ 新增成功！資料 ID: ${docRef.id}`;
+            messageDiv.className = "success";
+            document.getElementById('dataForm').reset();
+            
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            messageDiv.textContent = `❌ 發生錯誤：${error.message}`;
+            messageDiv.className = "error";
+        } finally {
+            // 恢復按鈕狀態
+            submitBtn.disabled = false;
+            submitBtn.textContent = "新增資料";
+        }
+    });
+</script>
+
+</body>
+</html>
