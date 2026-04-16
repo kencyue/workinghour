@@ -29,6 +29,10 @@
         .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-save { background: var(--admin-color); color: white; width: 100%; margin-top: 10px; }
 
+        /* 刪除按鈕樣式 */
+        .btn-delete { background: #fee2e2; color: #ef4444; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-delete:hover { background: #fca5a5; color: #b91c1c; }
+
         .search-section { background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
         .full-search { grid-column: 1 / -1; }
 
@@ -83,7 +87,7 @@
             
             tbody tr { margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.04); padding: 8px 0; }
             tbody td { display: flex; justify-content: flex-start; align-items: flex-start; border-bottom: 1px solid #f1f5f9; padding: 12px 16px; font-size: 0.95rem; gap: 12px; }
-            tbody td:last-child { border-bottom: none; background-color: #f8fafc; border-radius: 0 0 12px 12px;} 
+            tbody td:last-child { border-bottom: none; background-color: #f8fafc; border-radius: 0 0 12px 12px; align-items: center;} 
             
             tbody td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); flex-shrink: 0; width: 80px; text-align: left; }
             .editable, tbody td > span { flex-grow: 1; text-align: right; word-break: break-all; min-height: 1.2em; }
@@ -157,10 +161,10 @@
                 <th class="sortable" data-sort="partNumber">品番 <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="taiwanPanasonicNo">台松料號 <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="laborTime">工時(分) <span class="sort-icon"></span></th>
-            </tr>
+                <th>操作</th> </tr>
         </thead>
         <tbody id="tableBody">
-            <tr><td colspan="7" style="text-align:center; padding: 40px; color: #94a3b8;">資料載入中...</td></tr>
+            <tr><td colspan="8" style="text-align:center; padding: 40px; color: #94a3b8;">資料載入中...</td></tr>
         </tbody>
     </table>
 
@@ -174,9 +178,9 @@
 <div id="toastContainer"></div>
 
 <script type="module">
-    // 加入 writeBatch 模組以支援批次匯入
+    // 💡 注意：這裡引入了 deleteDoc 功能
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, limit, orderBy, updateDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, limit, orderBy, updateDoc, doc, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -224,7 +228,20 @@
         toggleBtn.innerHTML = isHidden ? '➖ 收起單筆建檔' : '➕ 展開單筆建檔';
     };
 
-    // ====== CSV 匯入核心邏輯 ======
+    // --- 刪除資料邏輯 ---
+    window.deleteRecord = async (id, event) => {
+        event.stopPropagation(); // 阻止觸發表格單擊的「複製 / 帶入表單」事件
+        if (!confirm("⚠️ 確定要刪除這筆資料嗎？刪除後將無法恢復！")) return;
+
+        try {
+            await deleteDoc(doc(db, "labor_costs", id));
+            showToast("已成功刪除資料", "success");
+        } catch (e) {
+            showToast("刪除失敗：" + e.message, "error");
+        }
+    };
+
+    // --- CSV 匯入 ---
     const importCsvBtn = document.getElementById('importCsvBtn');
     const csvFileInput = document.getElementById('csvFileInput');
 
@@ -238,105 +255,53 @@
         reader.onload = async (event) => {
             const csvText = event.target.result;
             await processCSV(csvText);
-            csvFileInput.value = ''; // 處理完重置
+            csvFileInput.value = ''; 
         };
-        reader.readAsText(file, 'UTF-8'); // 指定 UTF-8 編碼
+        reader.readAsText(file, 'UTF-8'); 
     });
 
     async function processCSV(csvText) {
-        // 以換行符號分割，並過濾掉空白行
         const rows = csvText.split(/\r?\n/).map(row => row.trim()).filter(row => row);
-        
-        if (rows.length < 2) {
-            showToast("CSV 檔案內容為空，或是缺少資料列！", "error");
-            return;
-        }
+        if (rows.length < 2) { showToast("CSV 檔案內容為空，或是缺少資料列！", "error"); return; }
 
         importCsvBtn.innerText = "⏳ 匯入處理中...";
         importCsvBtn.disabled = true;
 
-        let addedCount = 0;
-        let dupCount = 0;
-        let errCount = 0;
-
-        // 為了避免重複檢查時只比對到舊資料庫，建立一個暫存的 Set 來記錄此次匯入的項目
+        let addedCount = 0, dupCount = 0, errCount = 0;
         const currentSessionKeys = new Set();
-        
-        // Firestore 批次處理 (限制每個 Batch 最大 500 筆)
-        let batches = [];
-        let currentBatch = writeBatch(db);
-        let currentBatchCount = 0;
+        let batches = [], currentBatch = writeBatch(db), currentBatchCount = 0;
         const colRef = collection(db, "labor_costs");
 
-        // 從 i=1 開始，略過第一行標題列
         for (let i = 1; i < rows.length; i++) {
-            // 使用簡單正則處理包含逗號的欄位(若有引號包覆) 或單純的逗號分隔
-            // 若格式單純，使用 .split(',') 即可。這裡使用較安全的解析：
             const cols = rows[i].split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
-            
-            // 確保欄位數量至少有 7 個
-            if (cols.length < 7) {
-                errCount++;
-                continue;
-            }
+            if (cols.length < 7) { errCount++; continue; }
 
-            const newModel = cols[1];
-            const newNo = cols[4];
+            const newModel = cols[1], newNo = cols[4];
             const uniqueKey = `${newModel}_${newNo}`;
-
-            // 1. 檢查資料庫是否已有重複
             const isDbDuplicate = allData.some(item => item.machineModel === newModel && item.partNumber === newNo);
-            // 2. 檢查這次 CSV 中是否自己本身有重複
             const isSessionDuplicate = currentSessionKeys.has(uniqueKey);
 
-            if (isDbDuplicate || isSessionDuplicate) {
-                dupCount++;
-                continue; // 略過重複項目
-            }
+            if (isDbDuplicate || isSessionDuplicate) { dupCount++; continue; }
 
-            // 新增資料
             const newDocRef = doc(colRef);
             currentBatch.set(newDocRef, {
-                category: cols[0],
-                machineModel: newModel,
-                capacity: cols[2],
-                partName: cols[3],
-                partNumber: newNo,
-                taiwanPanasonicNo: cols[5],
-                laborTime: Number(cols[6]) || 0,
-                createdAt: new Date()
+                category: cols[0], machineModel: newModel, capacity: cols[2],
+                partName: cols[3], partNumber: newNo, taiwanPanasonicNo: cols[5],
+                laborTime: Number(cols[6]) || 0, createdAt: new Date()
             });
 
-            currentSessionKeys.add(uniqueKey);
-            addedCount++;
-            currentBatchCount++;
-
-            // 如果達到 500 筆，推入陣列並開啟新的 batch
-            if (currentBatchCount === 500) {
-                batches.push(currentBatch.commit());
-                currentBatch = writeBatch(db);
-                currentBatchCount = 0;
-            }
+            currentSessionKeys.add(uniqueKey); addedCount++; currentBatchCount++;
+            if (currentBatchCount === 500) { batches.push(currentBatch.commit()); currentBatch = writeBatch(db); currentBatchCount = 0; }
         }
-
-        // 處理剩餘未滿 500 筆的 batch
-        if (currentBatchCount > 0) {
-            batches.push(currentBatch.commit());
-        }
+        if (currentBatchCount > 0) batches.push(currentBatch.commit());
 
         try {
             if (batches.length > 0) {
                 await Promise.all(batches);
                 showToast(`✅ 匯入成功！新增 ${addedCount} 筆，略過重複 ${dupCount} 筆${errCount > 0 ? `，格式錯誤 ${errCount} 筆` : ''}。`, 'success');
-            } else {
-                showToast(`⚠️ 未匯入任何資料（皆為重複或格式錯誤，共 ${dupCount} 筆）。`, 'info');
-            }
-        } catch (error) {
-            showToast("❌ 批次匯入發生錯誤：" + error.message, 'error');
-        } finally {
-            importCsvBtn.innerText = "📁 批次匯入 CSV";
-            importCsvBtn.disabled = false;
-        }
+            } else { showToast(`⚠️ 未匯入任何資料（皆為重複或格式錯誤）。`, 'info'); }
+        } catch (error) { showToast("❌ 批次匯入發生錯誤：" + error.message, 'error'); } 
+        finally { importCsvBtn.innerText = "📁 批次匯入 CSV"; importCsvBtn.disabled = false; }
     }
 
 
@@ -356,7 +321,6 @@
         renderTable();
     });
 
-    // 擴大載入筆數到 1000 以應付匯入後的查詢，大型系統建議後續改用分頁拉取
     const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(1000));
     onSnapshot(q, (snapshot) => {
         allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -425,10 +389,11 @@
         document.getElementById('nextBtn').disabled = currentPage === totalPages;
 
         if (pagedData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">找不到符合的資料</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px;">找不到符合的資料</td></tr>`;
             return;
         }
 
+        // --- 渲染資料：加入「刪除」按鈕欄位 ---
         tbody.innerHTML = pagedData.map(item => `
             <tr data-id="${item.id}">
                 <td data-label="類別：" data-field="category" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.category||''}</td>
@@ -438,6 +403,9 @@
                 <td data-label="品番：" data-field="partNumber" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partNumber||''}</td>
                 <td data-label="台松料號：" data-field="taiwanPanasonicNo" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.taiwanPanasonicNo||''}</td>
                 <td data-label="工時(分)：" data-field="laborTime" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.laborTime||0}</td>
+                <td data-label="操作：">
+                    ${isAdmin ? `<button class="btn-delete" onclick="deleteRecord('${item.id}', event)">🗑️ 刪除</button>` : `<span style="color:#cbd5e1; font-size:0.85rem;">-</span>`}
+                </td>
             </tr>
         `).join('');
     }
@@ -454,7 +422,7 @@
 
     document.getElementById('tableBody').addEventListener('click', (e) => {
         const td = e.target.closest('td');
-        if (!td) return;
+        if (!td || e.target.tagName === 'BUTTON') return; // 若點擊的是刪除按鈕，不觸發帶入表單
 
         if (isAdmin) {
             const item = allData.find(d => d.id === td.closest('tr').dataset.id);
@@ -481,6 +449,8 @@
         
         const id = td.closest('tr').dataset.id;
         const field = td.dataset.sort || td.dataset.field; 
+        if(!field) return; // 避開沒有 data-field 的欄位 (如操作欄)
+
         let newVal = td.innerText.trim();
         const finalVal = (field === 'laborTime') ? Number(newVal) : newVal;
         
