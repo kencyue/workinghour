@@ -33,10 +33,15 @@
         .full-search { grid-column: 1 / -1; }
 
         #adminArea { display: none; background: #ffffff; padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); }
-        #toggleFormBtn { width: 100%; background: #ecfdf5; color: var(--admin-color); border: 1px dashed var(--admin-color); padding: 12px; font-weight: bold; margin-bottom: 15px;}
+        .admin-action-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .admin-action-row > button { flex: 1; }
+        #toggleFormBtn { background: #ecfdf5; color: var(--admin-color); border: 1px dashed var(--admin-color); }
         #toggleFormBtn:hover { background: #d1fae5; }
+        #importCsvBtn { background: #f8fafc; color: var(--text-main); border: 1px dashed var(--border-color); }
+        #importCsvBtn:hover { background: #e2e8f0; }
+        
         #formWrapper { display: none; padding-top: 15px; border-top: 1px solid #e2e8f0; }
-        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
 
         .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; flex-wrap: wrap; gap: 10px;}
         .page-size-input { width: 60px; text-align: center; margin: 0 5px; padding: 6px; display: inline-block; }
@@ -62,9 +67,6 @@
         .toast.show { transform: translateY(0); opacity: 1; }
         .toast-success { border-left-color: #10b981; } .toast-error { border-left-color: #ef4444; } .toast-info { border-left-color: #3b82f6; }
 
-        /* =========================================
-           ✨ 修正版手機 RWD：完美對齊與防跑版
-           ========================================= */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .container { padding: 15px; border-radius: 12px; }
@@ -74,47 +76,17 @@
             
             .search-section { padding: 15px; }
             .input-row { grid-template-columns: 1fr; } 
+            .admin-action-row { flex-direction: column; }
             
             table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; } /* 徹底隱藏表頭避免干擾 */
+            thead { display: none; } 
             
-            tbody tr { 
-                margin-bottom: 20px; 
-                border: 1px solid var(--border-color); 
-                border-radius: 12px; 
-                background: #fff;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.04);
-                padding: 8px 0; /* 給卡片上下加一點內距 */
-            }
-            
-            tbody td { 
-                display: flex; 
-                justify-content: flex-start; 
-                align-items: flex-start; /* 針對多行文字靠上對齊 */
-                border-bottom: 1px solid #f1f5f9; 
-                padding: 12px 16px; 
-                font-size: 0.95rem;
-                gap: 12px; /* 標題與內容的間距 */
-            }
+            tbody tr { margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 12px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.04); padding: 8px 0; }
+            tbody td { display: flex; justify-content: flex-start; align-items: flex-start; border-bottom: 1px solid #f1f5f9; padding: 12px 16px; font-size: 0.95rem; gap: 12px; }
             tbody td:last-child { border-bottom: none; background-color: #f8fafc; border-radius: 0 0 12px 12px;} 
             
-            /* 【修正重點一】：鎖定標題寬度，保證對齊基準線 */
-            tbody td::before { 
-                content: attr(data-label); 
-                font-weight: 600; 
-                color: var(--text-muted); 
-                flex-shrink: 0; /* 絕對不允許縮水 */
-                width: 80px;    /* 固定標題寬度 */
-                text-align: left;
-            }
-            
-            /* 【修正重點二】：右側內容自動伸展，且允許長英文字串斷行 */
-            .editable, tbody td > span {
-                flex-grow: 1; 
-                text-align: right; 
-                word-break: break-all; /* 防止長品番撐破版面 */
-                min-height: 1.2em; /* 確保空白欄位也有高度可點擊 */
-            }
+            tbody td::before { content: attr(data-label); font-weight: 600; color: var(--text-muted); flex-shrink: 0; width: 80px; text-align: left; }
+            .editable, tbody td > span { flex-grow: 1; text-align: right; word-break: break-all; min-height: 1.2em; }
             
             .table-controls { flex-direction: column; align-items: stretch; gap: 15px; }
             .table-controls > div { display: flex; justify-content: space-between; align-items: center; }
@@ -132,6 +104,7 @@
 <datalist id="listModel"></datalist>
 <datalist id="listCapacity"></datalist>
 <datalist id="listPartName"></datalist>
+<datalist id="listTpN"></datalist>
 
 <div class="container">
     <div class="header">
@@ -140,23 +113,29 @@
     </div>
 
     <div class="search-section">
-        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 全域搜尋 (可直接輸入機種、品番等關鍵字)...">
+        <input type="text" id="globalSearch" class="full-search" placeholder="🔍 全域搜尋 (可直接輸入機種、品番、台松料號等關鍵字)...">
         <select id="filterCategory"><option value="">所有類別</option></select>
         <select id="filterCapacity"><option value="">所有能力別</option></select>
     </div>
 
     <div id="adminArea">
-        <button id="toggleFormBtn" class="btn">➕ 展開建檔表單</button>
+        <div class="admin-action-row">
+            <button id="toggleFormBtn" class="btn">➕ 展開單筆建檔</button>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+            <button id="importCsvBtn" class="btn">📁 批次匯入 CSV</button>
+        </div>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin: 0 0 15px 0;">CSV 欄位格式限制：類別, 機種, 能力別, 零件名稱, 品番, 台松料號, 工時</p>
+
         <div id="formWrapper">
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">提示：點擊下方資料卡可帶入；輸入類別後，能力別會自動限縮。</p>
             <form id="addForm" class="input-row">
                 <input type="text" id="inCat" list="listCategory" placeholder="類別" required>
                 <input type="text" id="inModel" list="listModel" placeholder="機種" required>
                 <input type="text" id="inCap" list="listCapacity" placeholder="能力別" required>
                 <input type="text" id="inName" list="listPartName" placeholder="零件名稱" required>
-                <input type="text" id="inNo" placeholder="品番" required>
+                <input type="text" id="inNo" placeholder="品番 (原廠料號)" required>
+                <input type="text" id="inTpN" list="listTpN" placeholder="台松料號" required>
                 <input type="number" id="inTime" placeholder="工時(分)" required>
-                <button type="submit" class="btn btn-save">儲存寫入資料庫</button>
+                <button type="submit" class="btn btn-save" style="grid-column: 1 / -1;">儲存寫入資料庫</button>
             </form>
         </div>
     </div>
@@ -176,11 +155,12 @@
                 <th class="sortable" data-sort="capacity">能力別 <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="partName">零件名稱 <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="partNumber">品番 <span class="sort-icon"></span></th>
+                <th class="sortable" data-sort="taiwanPanasonicNo">台松料號 <span class="sort-icon"></span></th>
                 <th class="sortable" data-sort="laborTime">工時(分) <span class="sort-icon"></span></th>
             </tr>
         </thead>
         <tbody id="tableBody">
-            <tr><td colspan="6" style="text-align:center; padding: 40px; color: #94a3b8;">資料載入中...</td></tr>
+            <tr><td colspan="7" style="text-align:center; padding: 40px; color: #94a3b8;">資料載入中...</td></tr>
         </tbody>
     </table>
 
@@ -194,8 +174,9 @@
 <div id="toastContainer"></div>
 
 <script type="module">
+    // 加入 writeBatch 模組以支援批次匯入
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, limit, orderBy, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, limit, orderBy, updateDoc, doc, writeBatch } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -223,7 +204,7 @@
         toast.innerHTML = `<span style="margin-right:8px">${type === 'success'?'✅':type==='error'?'❌':'📋'}</span> ${message}`;
         container.appendChild(toast);
         setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2500); 
+        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3500); 
     }
 
     async function copyToClipboard(text) {
@@ -240,8 +221,124 @@
     toggleBtn.onclick = () => {
         const isHidden = formWrapper.style.display === '' || formWrapper.style.display === 'none';
         formWrapper.style.display = isHidden ? 'block' : 'none';
-        toggleBtn.innerHTML = isHidden ? '➖ 收起建檔表單' : '➕ 展開建檔表單';
+        toggleBtn.innerHTML = isHidden ? '➖ 收起單筆建檔' : '➕ 展開單筆建檔';
     };
+
+    // ====== CSV 匯入核心邏輯 ======
+    const importCsvBtn = document.getElementById('importCsvBtn');
+    const csvFileInput = document.getElementById('csvFileInput');
+
+    importCsvBtn.onclick = () => csvFileInput.click();
+
+    csvFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const csvText = event.target.result;
+            await processCSV(csvText);
+            csvFileInput.value = ''; // 處理完重置
+        };
+        reader.readAsText(file, 'UTF-8'); // 指定 UTF-8 編碼
+    });
+
+    async function processCSV(csvText) {
+        // 以換行符號分割，並過濾掉空白行
+        const rows = csvText.split(/\r?\n/).map(row => row.trim()).filter(row => row);
+        
+        if (rows.length < 2) {
+            showToast("CSV 檔案內容為空，或是缺少資料列！", "error");
+            return;
+        }
+
+        importCsvBtn.innerText = "⏳ 匯入處理中...";
+        importCsvBtn.disabled = true;
+
+        let addedCount = 0;
+        let dupCount = 0;
+        let errCount = 0;
+
+        // 為了避免重複檢查時只比對到舊資料庫，建立一個暫存的 Set 來記錄此次匯入的項目
+        const currentSessionKeys = new Set();
+        
+        // Firestore 批次處理 (限制每個 Batch 最大 500 筆)
+        let batches = [];
+        let currentBatch = writeBatch(db);
+        let currentBatchCount = 0;
+        const colRef = collection(db, "labor_costs");
+
+        // 從 i=1 開始，略過第一行標題列
+        for (let i = 1; i < rows.length; i++) {
+            // 使用簡單正則處理包含逗號的欄位(若有引號包覆) 或單純的逗號分隔
+            // 若格式單純，使用 .split(',') 即可。這裡使用較安全的解析：
+            const cols = rows[i].split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+            
+            // 確保欄位數量至少有 7 個
+            if (cols.length < 7) {
+                errCount++;
+                continue;
+            }
+
+            const newModel = cols[1];
+            const newNo = cols[4];
+            const uniqueKey = `${newModel}_${newNo}`;
+
+            // 1. 檢查資料庫是否已有重複
+            const isDbDuplicate = allData.some(item => item.machineModel === newModel && item.partNumber === newNo);
+            // 2. 檢查這次 CSV 中是否自己本身有重複
+            const isSessionDuplicate = currentSessionKeys.has(uniqueKey);
+
+            if (isDbDuplicate || isSessionDuplicate) {
+                dupCount++;
+                continue; // 略過重複項目
+            }
+
+            // 新增資料
+            const newDocRef = doc(colRef);
+            currentBatch.set(newDocRef, {
+                category: cols[0],
+                machineModel: newModel,
+                capacity: cols[2],
+                partName: cols[3],
+                partNumber: newNo,
+                taiwanPanasonicNo: cols[5],
+                laborTime: Number(cols[6]) || 0,
+                createdAt: new Date()
+            });
+
+            currentSessionKeys.add(uniqueKey);
+            addedCount++;
+            currentBatchCount++;
+
+            // 如果達到 500 筆，推入陣列並開啟新的 batch
+            if (currentBatchCount === 500) {
+                batches.push(currentBatch.commit());
+                currentBatch = writeBatch(db);
+                currentBatchCount = 0;
+            }
+        }
+
+        // 處理剩餘未滿 500 筆的 batch
+        if (currentBatchCount > 0) {
+            batches.push(currentBatch.commit());
+        }
+
+        try {
+            if (batches.length > 0) {
+                await Promise.all(batches);
+                showToast(`✅ 匯入成功！新增 ${addedCount} 筆，略過重複 ${dupCount} 筆${errCount > 0 ? `，格式錯誤 ${errCount} 筆` : ''}。`, 'success');
+            } else {
+                showToast(`⚠️ 未匯入任何資料（皆為重複或格式錯誤，共 ${dupCount} 筆）。`, 'info');
+            }
+        } catch (error) {
+            showToast("❌ 批次匯入發生錯誤：" + error.message, 'error');
+        } finally {
+            importCsvBtn.innerText = "📁 批次匯入 CSV";
+            importCsvBtn.disabled = false;
+        }
+    }
+
 
     onAuthStateChanged(auth, (user) => {
         const authArea = document.getElementById('authArea');
@@ -259,7 +356,8 @@
         renderTable();
     });
 
-    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(500));
+    // 擴大載入筆數到 1000 以應付匯入後的查詢，大型系統建議後續改用分頁拉取
+    const q = query(collection(db, "labor_costs"), orderBy("createdAt", "desc"), limit(1000));
     onSnapshot(q, (snapshot) => {
         allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         updateBaseFilters();
@@ -327,7 +425,7 @@
         document.getElementById('nextBtn').disabled = currentPage === totalPages;
 
         if (pagedData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px;">找不到符合的資料</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">找不到符合的資料</td></tr>`;
             return;
         }
 
@@ -338,6 +436,7 @@
                 <td data-label="能力別：" data-field="capacity" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.capacity||''}</td>
                 <td data-label="零件名稱：" data-field="partName" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partName||''}</td>
                 <td data-label="品番：" data-field="partNumber" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.partNumber||''}</td>
+                <td data-label="台松料號：" data-field="taiwanPanasonicNo" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.taiwanPanasonicNo||''}</td>
                 <td data-label="工時(分)：" data-field="laborTime" class="${isAdmin?'editable':''}" contenteditable="${isAdmin}">${item.laborTime||0}</td>
             </tr>
         `).join('');
@@ -365,10 +464,11 @@
                 document.getElementById('inCap').value = item.capacity || '';
                 document.getElementById('inName').value = item.partName || '';
                 document.getElementById('inNo').value = item.partNumber || '';
+                document.getElementById('inTpN').value = item.taiwanPanasonicNo || ''; 
                 document.getElementById('inTime').value = item.laborTime || '';
                 
                 formWrapper.style.display = 'block';
-                toggleBtn.innerHTML = '➖ 收起建檔表單';
+                toggleBtn.innerHTML = '➖ 收起單筆建檔';
                 updateFormCapacityDatalist();
             }
         }
@@ -395,6 +495,7 @@
         const cats = [...new Set(allData.map(i => i.category).filter(Boolean))];
         const models = [...new Set(allData.map(i => i.machineModel).filter(Boolean))];
         const names = [...new Set(allData.map(i => i.partName).filter(Boolean))];
+        const tpns = [...new Set(allData.map(i => i.taiwanPanasonicNo).filter(Boolean))];
 
         const filterCat = document.getElementById('filterCategory');
         const curCat = filterCat.value;
@@ -404,6 +505,7 @@
         document.getElementById('listCategory').innerHTML = cats.map(i => `<option value="${i}">`).join('');
         document.getElementById('listModel').innerHTML = models.map(i => `<option value="${i}">`).join('');
         document.getElementById('listPartName').innerHTML = names.map(i => `<option value="${i}">`).join('');
+        document.getElementById('listTpN').innerHTML = tpns.map(i => `<option value="${i}">`).join('');
 
         updateFilterCapacityDropdown();
         updateFormCapacityDatalist();
@@ -459,6 +561,7 @@
                 capacity: document.getElementById('inCap').value.trim(),
                 partName: document.getElementById('inName').value.trim(),
                 partNumber: newNo,
+                taiwanPanasonicNo: document.getElementById('inTpN').value.trim(),
                 laborTime: Number(document.getElementById('inTime').value),
                 createdAt: new Date()
             });
